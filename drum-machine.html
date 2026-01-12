@@ -688,18 +688,18 @@ class DrumMachine {
     this.timerID = null;
 
     this.channels = [
-      { name: 'Kick', type: 'kick', steps: Array(16).fill(null), volume: 0.8, pan: 0, pitch: 0, decay: 0.5, solo: false, mute: false, reverbSend: 0, delaySend: 0, filterCutoff: 20, filterRes: 0 },
-      { name: 'Snare', type: 'snare', steps: Array(16).fill(null), volume: 0.7, pan: 0, pitch: 0, decay: 0.5, solo: false, mute: false, reverbSend: 0.2, delaySend: 0, filterCutoff: 20, filterRes: 0 },
-      { name: 'Clap', type: 'clap', steps: Array(16).fill(null), volume: 0.6, pan: 0, pitch: 0, decay: 0.5, solo: false, mute: false, reverbSend: 0.3, delaySend: 0, filterCutoff: 20, filterRes: 0 },
-      { name: 'CH Hat', type: 'hihat', steps: Array(16).fill(null), volume: 0.5, pan: 0.1, pitch: 0, decay: 0.3, solo: false, mute: false, reverbSend: 0.1, delaySend: 0, filterCutoff: 20, filterRes: 0 },
-      { name: 'OH Hat', type: 'ohhat', steps: Array(16).fill(null), volume: 0.5, pan: -0.1, pitch: 0, decay: 0.6, solo: false, mute: false, reverbSend: 0.15, delaySend: 0, filterCutoff: 20, filterRes: 0 },
-      { name: 'Crash', type: 'crash', steps: Array(16).fill(null), volume: 0.6, pan: -0.3, pitch: 0, decay: 0.8, solo: false, mute: false, reverbSend: 0.4, delaySend: 0, filterCutoff: 20, filterRes: 0 },
-      { name: 'Ride', type: 'ride', steps: Array(16).fill(null), volume: 0.5, pan: 0.3, pitch: 0, decay: 0.7, solo: false, mute: false, reverbSend: 0.2, delaySend: 0, filterCutoff: 20, filterRes: 0 },
-      { name: 'Low Tom', type: 'tom', steps: Array(16).fill(null), volume: 0.7, pan: -0.2, pitch: -12, decay: 0.6, solo: false, mute: false, reverbSend: 0.15, delaySend: 0, filterCutoff: 20, filterRes: 0 },
-      { name: 'Mid Tom', type: 'tom', steps: Array(16).fill(null), volume: 0.7, pan: 0, pitch: 0, decay: 0.5, solo: false, mute: false, reverbSend: 0.15, delaySend: 0, filterCutoff: 20, filterRes: 0 },
-      { name: 'Hi Tom', type: 'tom', steps: Array(16).fill(null), volume: 0.7, pan: 0.2, pitch: 12, decay: 0.4, solo: false, mute: false, reverbSend: 0.15, delaySend: 0, filterCutoff: 20, filterRes: 0 },
-      { name: 'Rimshot', type: 'rim', steps: Array(16).fill(null), volume: 0.6, pan: 0, pitch: 0, decay: 0.2, solo: false, mute: false, reverbSend: 0.1, delaySend: 0, filterCutoff: 20, filterRes: 0 },
-      { name: 'Shaker', type: 'shaker', steps: Array(16).fill(null), volume: 0.4, pan: 0, pitch: 0, decay: 0.3, solo: false, mute: false, reverbSend: 0.2, delaySend: 0.1, filterCutoff: 20, filterRes: 0 }
+      { name: 'Kick', type: 'kick', steps: Array(16).fill(null), volume: 0.8, pan: 0, pitch: 0, decay: 0.5, solo: false, mute: false, reverbSend: 0, delaySend: 0, filterCutoff: 100, filterRes: 0 },
+      { name: 'Snare', type: 'snare', steps: Array(16).fill(null), volume: 0.7, pan: 0, pitch: 0, decay: 0.5, solo: false, mute: false, reverbSend: 0.2, delaySend: 0, filterCutoff: 100, filterRes: 0 },
+      { name: 'Clap', type: 'clap', steps: Array(16).fill(null), volume: 0.6, pan: 0, pitch: 0, decay: 0.5, solo: false, mute: false, reverbSend: 0.3, delaySend: 0, filterCutoff: 100, filterRes: 0 },
+      { name: 'CH Hat', type: 'hihat', steps: Array(16).fill(null), volume: 0.5, pan: 0.1, pitch: 0, decay: 0.3, solo: false, mute: false, reverbSend: 0.1, delaySend: 0, filterCutoff: 100, filterRes: 0 },
+      { name: 'OH Hat', type: 'ohhat', steps: Array(16).fill(null), volume: 0.5, pan: -0.1, pitch: 0, decay: 0.6, solo: false, mute: false, reverbSend: 0.15, delaySend: 0, filterCutoff: 100, filterRes: 0 },
+      { name: 'Crash', type: 'crash', steps: Array(16).fill(null), volume: 0.6, pan: -0.3, pitch: 0, decay: 0.8, solo: false, mute: false, reverbSend: 0.4, delaySend: 0, filterCutoff: 100, filterRes: 0 },
+      { name: 'Ride', type: 'ride', steps: Array(16).fill(null), volume: 0.5, pan: 0.3, pitch: 0, decay: 0.7, solo: false, mute: false, reverbSend: 0.2, delaySend: 0, filterCutoff: 100, filterRes: 0 },
+      { name: 'Low Tom', type: 'tom', steps: Array(16).fill(null), volume: 0.7, pan: -0.2, pitch: -12, decay: 0.6, solo: false, mute: false, reverbSend: 0.15, delaySend: 0, filterCutoff: 100, filterRes: 0 },
+      { name: 'Mid Tom', type: 'tom', steps: Array(16).fill(null), volume: 0.7, pan: 0, pitch: 0, decay: 0.5, solo: false, mute: false, reverbSend: 0.15, delaySend: 0, filterCutoff: 100, filterRes: 0 },
+      { name: 'Hi Tom', type: 'tom', steps: Array(16).fill(null), volume: 0.7, pan: 0.2, pitch: 12, decay: 0.4, solo: false, mute: false, reverbSend: 0.15, delaySend: 0, filterCutoff: 100, filterRes: 0 },
+      { name: 'Rimshot', type: 'rim', steps: Array(16).fill(null), volume: 0.6, pan: 0, pitch: 0, decay: 0.2, solo: false, mute: false, reverbSend: 0.1, delaySend: 0, filterCutoff: 100, filterRes: 0 },
+      { name: 'Shaker', type: 'shaker', steps: Array(16).fill(null), volume: 0.4, pan: 0, pitch: 0, decay: 0.3, solo: false, mute: false, reverbSend: 0.2, delaySend: 0.1, filterCutoff: 100, filterRes: 0 }
     ];
 
     this.patterns = Array(16).fill(null).map(() =>
@@ -1314,6 +1314,11 @@ class DrumMachine {
       return;
     }
 
+    // Resume audio context on user interaction (required by modern browsers)
+    if (this.audioContext.state === 'suspended') {
+      this.audioContext.resume();
+    }
+
     this.isPlaying = true;
     this.currentStep = 0;
 
@@ -1535,123 +1540,129 @@ class DrumMachine {
   }
 
   async exportWAV() {
-    const secondsPerBeat = 60.0 / this.tempo;
-    const patternDuration = secondsPerBeat * 4; // 16 steps = 4 beats
+    try {
+      const secondsPerBeat = 60.0 / this.tempo;
+      const patternDuration = secondsPerBeat * 4; // 16 steps = 4 beats
 
-    let totalDuration;
-    let patternsToRender;
+      let totalDuration;
+      let patternsToRender;
 
-    if (this.songMode && this.song.chain.length > 0) {
-      // Export entire song
-      totalDuration = patternDuration * this.song.chain.length;
-      patternsToRender = this.song.chain;
-    } else {
-      // Export current pattern only
-      totalDuration = patternDuration;
-      patternsToRender = [this.currentPattern];
-    }
-
-    // Create offline context for rendering
-    const sampleRate = 44100;
-    const offlineContext = new OfflineAudioContext(2, sampleRate * totalDuration, sampleRate);
-
-    // Set up effects chain in offline context - matching live playback
-    const offlineMaster = offlineContext.createGain();
-    offlineMaster.gain.value = this.masterGain.gain.value;
-
-    // Create compressor
-    const offlineCompressor = offlineContext.createDynamicsCompressor();
-    offlineCompressor.threshold.value = -20;
-    offlineCompressor.knee.value = 10;
-    offlineCompressor.ratio.value = 4;
-    offlineCompressor.attack.value = 0.003;
-    offlineCompressor.release.value = 0.25;
-
-    // Create reverb
-    const offlineConvolver = offlineContext.createConvolver();
-    const offlineReverbGain = offlineContext.createGain();
-    offlineReverbGain.gain.value = this.reverbGain.gain.value;
-
-    // Create reverb impulse response
-    const reverbLength = sampleRate * 2;
-    const reverbImpulse = offlineContext.createBuffer(2, reverbLength, sampleRate);
-    const reverbLeft = reverbImpulse.getChannelData(0);
-    const reverbRight = reverbImpulse.getChannelData(1);
-    for (let i = 0; i < reverbLength; i++) {
-      const decay = Math.pow(1 - i / reverbLength, 2);
-      reverbLeft[i] = (Math.random() * 2 - 1) * decay;
-      reverbRight[i] = (Math.random() * 2 - 1) * decay;
-    }
-    offlineConvolver.buffer = reverbImpulse;
-
-    // Create delay
-    const offlineDelay = offlineContext.createDelay();
-    offlineDelay.delayTime.value = 0.375;
-    const offlineDelayFeedback = offlineContext.createGain();
-    offlineDelayFeedback.gain.value = this.delayFeedback.gain.value;
-    const offlineDelayMix = offlineContext.createGain();
-    offlineDelayMix.gain.value = this.delayMix.gain.value;
-
-    // Wire up effects chain
-    offlineDelay.connect(offlineDelayFeedback);
-    offlineDelayFeedback.connect(offlineDelay);
-    offlineDelay.connect(offlineDelayMix);
-
-    offlineConvolver.connect(offlineReverbGain);
-    offlineReverbGain.connect(offlineCompressor);
-    offlineDelayMix.connect(offlineCompressor);
-    offlineMaster.connect(offlineCompressor);
-    offlineCompressor.connect(offlineContext.destination);
-
-    // Create effects object to pass to render function
-    const offlineEffects = {
-      master: offlineMaster,
-      convolver: offlineConvolver,
-      delay: offlineDelay
-    };
-
-    // Render each pattern in sequence
-    let patternStartTime = 0;
-
-    patternsToRender.forEach(patternIndex => {
-      const pattern = this.patterns[patternIndex];
-
-      for (let step = 0; step < 16; step++) {
-        const secondsPer16th = secondsPerBeat / 4;
-        let stepTime = patternStartTime + (step * secondsPer16th);
-
-        // Apply swing
-        if (step % 2 === 1) {
-          stepTime += secondsPer16th * ((this.swing - 50) / 100);
-        }
-
-        this.channels.forEach((channel, chIdx) => {
-          const stepData = pattern[chIdx].steps[step];
-          if (stepData && !channel.mute) {
-            const hasSolo = this.channels.some(ch => ch.solo);
-            if (!hasSolo || channel.solo) {
-              this.renderSoundOffline(offlineContext, offlineEffects, chIdx, stepTime, stepData);
-            }
-          }
-        });
+      if (this.songMode && this.song.chain.length > 0) {
+        // Export entire song
+        totalDuration = patternDuration * this.song.chain.length;
+        patternsToRender = this.song.chain;
+      } else {
+        // Export current pattern only
+        totalDuration = patternDuration;
+        patternsToRender = [this.currentPattern];
       }
 
-      patternStartTime += patternDuration;
-    });
+      // Create offline context for rendering
+      const sampleRate = 44100;
+      const offlineContext = new OfflineAudioContext(2, sampleRate * totalDuration, sampleRate);
 
-    // Render audio
-    const renderedBuffer = await offlineContext.startRendering();
+      // Set up effects chain in offline context - matching live playback
+      const offlineMaster = offlineContext.createGain();
+      offlineMaster.gain.value = this.masterGain.gain.value;
 
-    // Convert to WAV
-    const wavData = this.audioBufferToWav(renderedBuffer);
-    const blob = new Blob([wavData], { type: 'audio/wav' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    const filename = this.songMode && this.song.chain.length > 0 ? 'drum-song.wav' : 'drum-pattern.wav';
-    a.download = filename;
-    a.click();
-    URL.revokeObjectURL(url);
+      // Create compressor
+      const offlineCompressor = offlineContext.createDynamicsCompressor();
+      offlineCompressor.threshold.value = -20;
+      offlineCompressor.knee.value = 10;
+      offlineCompressor.ratio.value = 4;
+      offlineCompressor.attack.value = 0.003;
+      offlineCompressor.release.value = 0.25;
+
+      // Create reverb
+      const offlineConvolver = offlineContext.createConvolver();
+      const offlineReverbGain = offlineContext.createGain();
+      offlineReverbGain.gain.value = this.reverbGain.gain.value;
+
+      // Create reverb impulse response
+      const reverbLength = sampleRate * 2;
+      const reverbImpulse = offlineContext.createBuffer(2, reverbLength, sampleRate);
+      const reverbLeft = reverbImpulse.getChannelData(0);
+      const reverbRight = reverbImpulse.getChannelData(1);
+      for (let i = 0; i < reverbLength; i++) {
+        const decay = Math.pow(1 - i / reverbLength, 2);
+        reverbLeft[i] = (Math.random() * 2 - 1) * decay;
+        reverbRight[i] = (Math.random() * 2 - 1) * decay;
+      }
+      offlineConvolver.buffer = reverbImpulse;
+
+      // Create delay
+      const offlineDelay = offlineContext.createDelay();
+      offlineDelay.delayTime.value = 0.375;
+      const offlineDelayFeedback = offlineContext.createGain();
+      offlineDelayFeedback.gain.value = this.delayFeedback.gain.value;
+      const offlineDelayMix = offlineContext.createGain();
+      offlineDelayMix.gain.value = this.delayMix.gain.value;
+
+      // Wire up effects chain
+      offlineDelay.connect(offlineDelayFeedback);
+      offlineDelayFeedback.connect(offlineDelay);
+      offlineDelay.connect(offlineDelayMix);
+
+      offlineConvolver.connect(offlineReverbGain);
+      offlineReverbGain.connect(offlineCompressor);
+      offlineDelayMix.connect(offlineCompressor);
+      offlineMaster.connect(offlineCompressor);
+      offlineCompressor.connect(offlineContext.destination);
+
+      // Create effects object to pass to render function
+      const offlineEffects = {
+        master: offlineMaster,
+        convolver: offlineConvolver,
+        delay: offlineDelay
+      };
+
+      // Render each pattern in sequence
+      let patternStartTime = 0;
+
+      patternsToRender.forEach(patternIndex => {
+        const pattern = this.patterns[patternIndex];
+
+        for (let step = 0; step < 16; step++) {
+          const secondsPer16th = secondsPerBeat / 4;
+          let stepTime = patternStartTime + (step * secondsPer16th);
+
+          // Apply swing
+          if (step % 2 === 1) {
+            stepTime += secondsPer16th * ((this.swing - 50) / 100);
+          }
+
+          this.channels.forEach((channel, chIdx) => {
+            const stepData = pattern[chIdx].steps[step];
+            if (stepData && !channel.mute) {
+              const hasSolo = this.channels.some(ch => ch.solo);
+              if (!hasSolo || channel.solo) {
+                this.renderSoundOffline(offlineContext, offlineEffects, chIdx, stepTime, stepData);
+              }
+            }
+          });
+        }
+
+        patternStartTime += patternDuration;
+      });
+
+      // Render audio
+      const renderedBuffer = await offlineContext.startRendering();
+
+      // Convert to WAV
+      const wavData = this.audioBufferToWav(renderedBuffer);
+      const blob = new Blob([wavData], { type: 'audio/wav' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const filename = this.songMode && this.song.chain.length > 0 ? 'drum-song.wav' : 'drum-pattern.wav';
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+
+    } catch (err) {
+      alert('WAV export failed: ' + err.message + '\n\nTry exporting a shorter pattern or song.');
+      console.error('WAV export error:', err);
+    }
   }
 
   renderSoundOffline(ctx, effects, channelIndex, time, velocity) {
@@ -2069,8 +2080,8 @@ class DrumMachine {
               ch.delaySend = project.channels[i].delaySend;
               ch.solo = project.channels[i].solo || false;
               ch.mute = project.channels[i].mute || false;
-              ch.filterCutoff = project.channels[i].filterCutoff !== undefined ? project.channels[i].filterCutoff : 50;
-              ch.filterRes = project.channels[i].filterRes !== undefined ? project.channels[i].filterRes : 5;
+              ch.filterCutoff = project.channels[i].filterCutoff !== undefined ? project.channels[i].filterCutoff : 100;
+              ch.filterRes = project.channels[i].filterRes !== undefined ? project.channels[i].filterRes : 0;
             }
           });
 
@@ -2504,9 +2515,15 @@ class UI {
     };
 
     document.getElementById('exportWav').onclick = async () => {
-      document.getElementById('exportWav').textContent = 'Rendering...';
-      await this.machine.exportWAV();
-      document.getElementById('exportWav').textContent = 'WAV';
+      const btn = document.getElementById('exportWav');
+      try {
+        btn.textContent = 'Rendering...';
+        btn.disabled = true;
+        await this.machine.exportWAV();
+      } finally {
+        btn.textContent = 'WAV';
+        btn.disabled = false;
+      }
     };
     document.getElementById('exportMidi').onclick = () => this.machine.exportMIDI();
     document.getElementById('saveProject').onclick = () => this.machine.saveProject();
