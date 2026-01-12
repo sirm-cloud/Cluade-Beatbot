@@ -857,6 +857,7 @@ class DrumMachine {
     // Main tone
     const osc = this.audioContext.createOscillator();
     const gain = this.audioContext.createGain();
+    const filterNode = this.createFilter(channel);
 
     osc.frequency.setValueAtTime(kickFreq * 2, time);
     osc.frequency.exponentialRampToValueAtTime(kickFreq * 0.5, time + 0.05);
@@ -865,7 +866,8 @@ class DrumMachine {
     gain.gain.exponentialRampToValueAtTime(0.001, time + channel.decay * 0.5);
 
     osc.connect(gain);
-    gain.connect(panNode);
+    gain.connect(filterNode);
+    filterNode.connect(panNode);
 
     // Consistent click transient for attack
     const clickOsc = this.audioContext.createOscillator();
@@ -909,6 +911,7 @@ class DrumMachine {
   playSnare(time, vol, channel) {
     const freq = 180 * Math.pow(2, channel.pitch / 12);
 
+    const filterNode = this.createFilter(channel);
     const panNode = this.audioContext.createStereoPanner();
     panNode.pan.value = channel.pan;
 
@@ -932,7 +935,7 @@ class DrumMachine {
 
     noise.connect(hpf);
     hpf.connect(noiseGain);
-    noiseGain.connect(panNode);
+    noiseGain.connect(filterNode);
 
     const osc = this.audioContext.createOscillator();
     osc.frequency.value = freq;
@@ -942,8 +945,9 @@ class DrumMachine {
     oscGain.gain.exponentialRampToValueAtTime(0.01, time + 0.1);
 
     osc.connect(oscGain);
-    oscGain.connect(panNode);
+    oscGain.connect(filterNode);
 
+    filterNode.connect(panNode);
     panNode.connect(this.masterGain);
 
     if (channel.reverbSend > 0) {
@@ -969,8 +973,10 @@ class DrumMachine {
   playClap(time, vol, channel) {
     const freq = 1000 * Math.pow(2, channel.pitch / 12);
 
+    const filterNode = this.createFilter(channel);
     const panNode = this.audioContext.createStereoPanner();
     panNode.pan.value = channel.pan;
+    filterNode.connect(panNode);
     panNode.connect(this.masterGain);
 
     // Pitched click
@@ -980,7 +986,7 @@ class DrumMachine {
     clickGain.gain.setValueAtTime(vol * 0.3, time);
     clickGain.gain.exponentialRampToValueAtTime(0.01, time + 0.01);
     clickOsc.connect(clickGain);
-    clickGain.connect(panNode);
+    clickGain.connect(filterNode);
     clickOsc.start(time);
     clickOsc.stop(time + 0.02);
 
@@ -1002,7 +1008,7 @@ class DrumMachine {
       gain.gain.exponentialRampToValueAtTime(0.01, t + 0.05);
 
       noise.connect(gain);
-      gain.connect(panNode);
+      gain.connect(filterNode);
 
       noise.start(t);
       noise.stop(t + 0.1);
@@ -1042,12 +1048,14 @@ class DrumMachine {
     gain.gain.setValueAtTime(vol, time);
     gain.gain.exponentialRampToValueAtTime(0.01, time + duration * channel.decay);
 
+    const filterNode = this.createFilter(channel);
     const panNode = this.audioContext.createStereoPanner();
     panNode.pan.value = channel.pan;
 
     noise.connect(hpf);
     hpf.connect(gain);
-    gain.connect(panNode);
+    gain.connect(filterNode);
+    filterNode.connect(panNode);
     panNode.connect(this.masterGain);
 
     if (channel.reverbSend > 0) {
@@ -1090,12 +1098,14 @@ class DrumMachine {
     gain.gain.setValueAtTime(vol, time);
     gain.gain.exponentialRampToValueAtTime(0.01, time + channel.decay);
 
+    const filterNode = this.createFilter(channel);
     const panNode = this.audioContext.createStereoPanner();
     panNode.pan.value = channel.pan;
 
     noise.connect(hpf);
     hpf.connect(gain);
-    gain.connect(panNode);
+    gain.connect(filterNode);
+    filterNode.connect(panNode);
     panNode.connect(this.masterGain);
 
     if (channel.reverbSend > 0) {
@@ -1163,11 +1173,13 @@ class DrumMachine {
     gain.gain.setValueAtTime(vol * 0.3, time);
     gain.gain.exponentialRampToValueAtTime(0.01, time + channel.decay * 0.1);
 
+    const filterNode = this.createFilter(channel);
     const panNode = this.audioContext.createStereoPanner();
     panNode.pan.value = channel.pan;
 
     osc.connect(gain);
-    gain.connect(panNode);
+    gain.connect(filterNode);
+    filterNode.connect(panNode);
     panNode.connect(this.masterGain);
 
     if (channel.reverbSend > 0) {
@@ -1207,12 +1219,14 @@ class DrumMachine {
     gain.gain.setValueAtTime(vol, time);
     gain.gain.exponentialRampToValueAtTime(0.01, time + channel.decay * 0.1);
 
+    const filterNode = this.createFilter(channel);
     const panNode = this.audioContext.createStereoPanner();
     panNode.pan.value = channel.pan;
 
     noise.connect(hpf);
     hpf.connect(gain);
-    gain.connect(panNode);
+    gain.connect(filterNode);
+    filterNode.connect(panNode);
     panNode.connect(this.masterGain);
 
     if (channel.delaySend > 0) {
