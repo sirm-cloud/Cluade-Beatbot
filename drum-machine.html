@@ -1555,10 +1555,60 @@ class DrumMachine {
     const sampleRate = 44100;
     const offlineContext = new OfflineAudioContext(2, sampleRate * totalDuration, sampleRate);
 
-    // Set up effects chain in offline context
+    // Set up effects chain in offline context - matching live playback
     const offlineMaster = offlineContext.createGain();
     offlineMaster.gain.value = this.masterGain.gain.value;
-    offlineMaster.connect(offlineContext.destination);
+
+    // Create compressor
+    const offlineCompressor = offlineContext.createDynamicsCompressor();
+    offlineCompressor.threshold.value = -20;
+    offlineCompressor.knee.value = 10;
+    offlineCompressor.ratio.value = 4;
+    offlineCompressor.attack.value = 0.003;
+    offlineCompressor.release.value = 0.25;
+
+    // Create reverb
+    const offlineConvolver = offlineContext.createConvolver();
+    const offlineReverbGain = offlineContext.createGain();
+    offlineReverbGain.gain.value = this.reverbGain.gain.value;
+
+    // Create reverb impulse response
+    const reverbLength = sampleRate * 2;
+    const reverbImpulse = offlineContext.createBuffer(2, reverbLength, sampleRate);
+    const reverbLeft = reverbImpulse.getChannelData(0);
+    const reverbRight = reverbImpulse.getChannelData(1);
+    for (let i = 0; i < reverbLength; i++) {
+      const decay = Math.pow(1 - i / reverbLength, 2);
+      reverbLeft[i] = (Math.random() * 2 - 1) * decay;
+      reverbRight[i] = (Math.random() * 2 - 1) * decay;
+    }
+    offlineConvolver.buffer = reverbImpulse;
+
+    // Create delay
+    const offlineDelay = offlineContext.createDelay();
+    offlineDelay.delayTime.value = 0.375;
+    const offlineDelayFeedback = offlineContext.createGain();
+    offlineDelayFeedback.gain.value = this.delayFeedback.gain.value;
+    const offlineDelayMix = offlineContext.createGain();
+    offlineDelayMix.gain.value = this.delayMix.gain.value;
+
+    // Wire up effects chain
+    offlineDelay.connect(offlineDelayFeedback);
+    offlineDelayFeedback.connect(offlineDelay);
+    offlineDelay.connect(offlineDelayMix);
+
+    offlineConvolver.connect(offlineReverbGain);
+    offlineReverbGain.connect(offlineCompressor);
+    offlineDelayMix.connect(offlineCompressor);
+    offlineMaster.connect(offlineCompressor);
+    offlineCompressor.connect(offlineContext.destination);
+
+    // Create effects object to pass to render function
+    const offlineEffects = {
+      master: offlineMaster,
+      convolver: offlineConvolver,
+      delay: offlineDelay
+    };
 
     // Render each pattern in sequence
     let patternStartTime = 0;
@@ -1580,7 +1630,7 @@ class DrumMachine {
           if (stepData && !channel.mute) {
             const hasSolo = this.channels.some(ch => ch.solo);
             if (!hasSolo || channel.solo) {
-              this.renderSoundOffline(offlineContext, offlineMaster, chIdx, stepTime, stepData);
+              this.renderSoundOffline(offlineContext, offlineEffects, chIdx, stepTime, stepData);
             }
           }
         });
@@ -1604,7 +1654,7 @@ class DrumMachine {
     URL.revokeObjectURL(url);
   }
 
-  renderSoundOffline(ctx, dest, channelIndex, time, velocity) {
+  renderSoundOffline(ctx, effects, channelIndex, time, velocity) {
     const channel = this.channels[channelIndex];
     const vol = channel.volume * velocity;
 
@@ -1621,7 +1671,23 @@ class DrumMachine {
     panNode.pan.value = channel.pan;
 
     filterNode.connect(panNode);
-    panNode.connect(dest);
+    panNode.connect(effects.master);
+
+    // Add reverb send if channel has reverb
+    if (channel.reverbSend > 0) {
+      const reverbSend = ctx.createGain();
+      reverbSend.gain.value = channel.reverbSend;
+      panNode.connect(reverbSend);
+      reverbSend.connect(effects.convolver);
+    }
+
+    // Add delay send if channel has delay
+    if (channel.delaySend > 0) {
+      const delaySend = ctx.createGain();
+      delaySend.gain.value = channel.delaySend;
+      panNode.connect(delaySend);
+      delaySend.connect(effects.delay);
+    }
 
     switch(channel.type) {
       case 'kick': {
