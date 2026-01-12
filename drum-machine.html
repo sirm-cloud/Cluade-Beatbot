@@ -1606,55 +1606,268 @@ class DrumMachine {
 
   renderSoundOffline(ctx, dest, channelIndex, time, velocity) {
     const channel = this.channels[channelIndex];
-    const freq = 440 * Math.pow(2, channel.pitch / 12);
     const vol = channel.volume * velocity;
 
-    // Simple rendering for offline context (kick, snare, hihat examples)
-    if (channel.type === 'kick') {
-      const kickFreq = 60 * Math.pow(2, channel.pitch / 12);
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.frequency.setValueAtTime(kickFreq * 2, time);
-      osc.frequency.exponentialRampToValueAtTime(kickFreq * 0.5, time + 0.05);
-      gain.gain.setValueAtTime(vol, time);
-      gain.gain.exponentialRampToValueAtTime(0.001, time + channel.decay * 0.5);
-      osc.connect(gain);
-      gain.connect(dest);
-      osc.start(time);
-      osc.stop(time + channel.decay * 0.5 + 0.2);
+    // Create filter and pan nodes
+    const filterNode = ctx.createBiquadFilter();
+    filterNode.type = 'lowpass';
+    const minFreq = 80;
+    const maxFreq = 8000;
+    const cutoffFreq = minFreq * Math.pow(maxFreq / minFreq, channel.filterCutoff / 100);
+    filterNode.frequency.value = cutoffFreq;
+    filterNode.Q.value = (channel.filterRes / 100) * 20;
 
-      // Click transient
-      const clickOsc = ctx.createOscillator();
-      const clickGain = ctx.createGain();
-      clickOsc.frequency.value = 150;
-      clickGain.gain.setValueAtTime(vol * 0.4, time);
-      clickGain.gain.exponentialRampToValueAtTime(0.001, time + 0.01);
-      clickOsc.connect(clickGain);
-      clickGain.connect(dest);
-      clickOsc.start(time);
-      clickOsc.stop(time + 0.02);
-    } else if (channel.type === 'snare') {
-      // Simplified snare for offline rendering
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.frequency.value = 180 * Math.pow(2, channel.pitch / 12);
-      gain.gain.setValueAtTime(vol, time);
-      gain.gain.exponentialRampToValueAtTime(0.01, time + 0.1);
-      osc.connect(gain);
-      gain.connect(dest);
-      osc.start(time);
-      osc.stop(time + 0.15);
-    } else {
-      // Generic percussion
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.frequency.value = freq;
-      gain.gain.setValueAtTime(vol * 0.5, time);
-      gain.gain.exponentialRampToValueAtTime(0.01, time + channel.decay * 0.3);
-      osc.connect(gain);
-      gain.connect(dest);
-      osc.start(time);
-      osc.stop(time + channel.decay * 0.3 + 0.1);
+    const panNode = ctx.createStereoPanner();
+    panNode.pan.value = channel.pan;
+
+    filterNode.connect(panNode);
+    panNode.connect(dest);
+
+    switch(channel.type) {
+      case 'kick': {
+        const kickFreq = 60 * Math.pow(2, channel.pitch / 12);
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.frequency.setValueAtTime(kickFreq * 2, time);
+        osc.frequency.exponentialRampToValueAtTime(kickFreq * 0.5, time + 0.05);
+        gain.gain.setValueAtTime(vol, time);
+        gain.gain.exponentialRampToValueAtTime(0.001, time + channel.decay * 0.5);
+        osc.connect(gain);
+        gain.connect(filterNode);
+        osc.start(time);
+        osc.stop(time + channel.decay * 0.5 + 0.2);
+
+        const clickOsc = ctx.createOscillator();
+        const clickGain = ctx.createGain();
+        const clickFilter = ctx.createBiquadFilter();
+        clickFilter.type = 'highpass';
+        clickFilter.frequency.value = 1000;
+        clickOsc.frequency.value = 150;
+        clickGain.gain.setValueAtTime(vol * 0.4, time);
+        clickGain.gain.exponentialRampToValueAtTime(0.001, time + 0.01);
+        clickOsc.connect(clickFilter);
+        clickFilter.connect(clickGain);
+        clickGain.connect(filterNode);
+        clickOsc.start(time);
+        clickOsc.stop(time + 0.02);
+        break;
+      }
+
+      case 'snare': {
+        const freq = 180 * Math.pow(2, channel.pitch / 12);
+        const bufferSize = ctx.sampleRate * 0.2;
+        const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          data[i] = Math.random() * 2 - 1;
+        }
+        const noise = ctx.createBufferSource();
+        noise.buffer = buffer;
+        const hpf = ctx.createBiquadFilter();
+        hpf.type = 'highpass';
+        hpf.frequency.value = 1000 * Math.pow(2, channel.pitch / 24);
+        const noiseGain = ctx.createGain();
+        noiseGain.gain.setValueAtTime(vol * 0.7, time);
+        noiseGain.gain.exponentialRampToValueAtTime(0.01, time + channel.decay * 0.3);
+        noise.connect(hpf);
+        hpf.connect(noiseGain);
+        noiseGain.connect(filterNode);
+        noise.start(time);
+        noise.stop(time + channel.decay * 0.3 + 0.1);
+
+        const osc = ctx.createOscillator();
+        osc.frequency.value = freq;
+        const oscGain = ctx.createGain();
+        oscGain.gain.setValueAtTime(vol * 0.5, time);
+        oscGain.gain.exponentialRampToValueAtTime(0.01, time + 0.1);
+        osc.connect(oscGain);
+        oscGain.connect(filterNode);
+        osc.start(time);
+        osc.stop(time + 0.2);
+        break;
+      }
+
+      case 'clap': {
+        const freq = 1000 * Math.pow(2, channel.pitch / 12);
+        const clickOsc = ctx.createOscillator();
+        clickOsc.frequency.value = freq;
+        const clickGain = ctx.createGain();
+        clickGain.gain.setValueAtTime(vol * 0.3, time);
+        clickGain.gain.exponentialRampToValueAtTime(0.01, time + 0.01);
+        clickOsc.connect(clickGain);
+        clickGain.connect(filterNode);
+        clickOsc.start(time);
+        clickOsc.stop(time + 0.02);
+
+        for (let i = 0; i < 3; i++) {
+          const bufferSize = ctx.sampleRate * 0.05;
+          const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+          const data = buffer.getChannelData(0);
+          for (let j = 0; j < bufferSize; j++) {
+            data[j] = Math.random() * 2 - 1;
+          }
+          const noise = ctx.createBufferSource();
+          noise.buffer = buffer;
+          const gain = ctx.createGain();
+          const t = time + i * 0.015;
+          gain.gain.setValueAtTime(vol * 0.6, t);
+          gain.gain.exponentialRampToValueAtTime(0.01, t + 0.05);
+          noise.connect(gain);
+          gain.connect(filterNode);
+          noise.start(t);
+          noise.stop(t + 0.1);
+        }
+        break;
+      }
+
+      case 'hihat': {
+        const bufferSize = ctx.sampleRate * 0.2;
+        const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          data[i] = Math.random() * 2 - 1;
+        }
+        const noise = ctx.createBufferSource();
+        noise.buffer = buffer;
+        const hpf = ctx.createBiquadFilter();
+        hpf.type = 'highpass';
+        hpf.frequency.value = 7000 * Math.pow(2, channel.pitch / 12);
+        const gain = ctx.createGain();
+        gain.gain.setValueAtTime(vol, time);
+        gain.gain.exponentialRampToValueAtTime(0.01, time + 0.05 * channel.decay);
+        noise.connect(hpf);
+        hpf.connect(gain);
+        gain.connect(filterNode);
+        noise.start(time);
+        noise.stop(time + 0.05 * channel.decay + 0.1);
+        break;
+      }
+
+      case 'ohhat': {
+        const bufferSize = ctx.sampleRate * 0.2;
+        const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          data[i] = Math.random() * 2 - 1;
+        }
+        const noise = ctx.createBufferSource();
+        noise.buffer = buffer;
+        const hpf = ctx.createBiquadFilter();
+        hpf.type = 'highpass';
+        hpf.frequency.value = 7000 * Math.pow(2, channel.pitch / 12);
+        const gain = ctx.createGain();
+        gain.gain.setValueAtTime(vol, time);
+        gain.gain.exponentialRampToValueAtTime(0.01, time + 0.3 * channel.decay);
+        noise.connect(hpf);
+        hpf.connect(gain);
+        gain.connect(filterNode);
+        noise.start(time);
+        noise.stop(time + 0.3 * channel.decay + 0.1);
+        break;
+      }
+
+      case 'crash': {
+        const bufferSize = ctx.sampleRate;
+        const buffer = ctx.createBuffer(2, bufferSize, ctx.sampleRate);
+        const left = buffer.getChannelData(0);
+        const right = buffer.getChannelData(1);
+        for (let i = 0; i < bufferSize; i++) {
+          left[i] = Math.random() * 2 - 1;
+          right[i] = Math.random() * 2 - 1;
+        }
+        const noise = ctx.createBufferSource();
+        noise.buffer = buffer;
+        const hpf = ctx.createBiquadFilter();
+        hpf.type = 'highpass';
+        hpf.frequency.value = 8000 * Math.pow(2, channel.pitch / 12);
+        const gain = ctx.createGain();
+        gain.gain.setValueAtTime(vol, time);
+        gain.gain.exponentialRampToValueAtTime(0.01, time + channel.decay);
+        noise.connect(hpf);
+        hpf.connect(gain);
+        gain.connect(filterNode);
+        noise.start(time);
+        noise.stop(time + channel.decay + 0.1);
+        break;
+      }
+
+      case 'ride': {
+        const bufferSize = ctx.sampleRate;
+        const buffer = ctx.createBuffer(2, bufferSize, ctx.sampleRate);
+        const left = buffer.getChannelData(0);
+        const right = buffer.getChannelData(1);
+        for (let i = 0; i < bufferSize; i++) {
+          left[i] = Math.random() * 2 - 1;
+          right[i] = Math.random() * 2 - 1;
+        }
+        const noise = ctx.createBufferSource();
+        noise.buffer = buffer;
+        const hpf = ctx.createBiquadFilter();
+        hpf.type = 'highpass';
+        hpf.frequency.value = 3000 * Math.pow(2, channel.pitch / 12);
+        const gain = ctx.createGain();
+        gain.gain.setValueAtTime(vol, time);
+        gain.gain.exponentialRampToValueAtTime(0.01, time + channel.decay);
+        noise.connect(hpf);
+        hpf.connect(gain);
+        gain.connect(filterNode);
+        noise.start(time);
+        noise.stop(time + channel.decay + 0.1);
+        break;
+      }
+
+      case 'tom': {
+        const freq = 440 * Math.pow(2, channel.pitch / 12);
+        const osc = ctx.createOscillator();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq * 2, time);
+        osc.frequency.exponentialRampToValueAtTime(freq, time + 0.05);
+        const gain = ctx.createGain();
+        gain.gain.setValueAtTime(vol, time);
+        gain.gain.exponentialRampToValueAtTime(0.01, time + channel.decay * 0.6);
+        osc.connect(gain);
+        gain.connect(filterNode);
+        osc.start(time);
+        osc.stop(time + channel.decay * 0.6 + 0.1);
+        break;
+      }
+
+      case 'rim': {
+        const freq = 400 * Math.pow(2, channel.pitch / 12);
+        const osc = ctx.createOscillator();
+        osc.frequency.value = freq;
+        const gain = ctx.createGain();
+        gain.gain.setValueAtTime(vol * 0.3, time);
+        gain.gain.exponentialRampToValueAtTime(0.01, time + channel.decay * 0.1);
+        osc.connect(gain);
+        gain.connect(filterNode);
+        osc.start(time);
+        osc.stop(time + channel.decay * 0.1 + 0.05);
+        break;
+      }
+
+      case 'shaker': {
+        const bufferSize = ctx.sampleRate * 0.05;
+        const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          data[i] = Math.random() * 2 - 1;
+        }
+        const noise = ctx.createBufferSource();
+        noise.buffer = buffer;
+        const hpf = ctx.createBiquadFilter();
+        hpf.type = 'highpass';
+        hpf.frequency.value = 5000 * Math.pow(2, channel.pitch / 12);
+        const gain = ctx.createGain();
+        gain.gain.setValueAtTime(vol, time);
+        gain.gain.exponentialRampToValueAtTime(0.01, time + channel.decay * 0.1);
+        noise.connect(hpf);
+        hpf.connect(gain);
+        gain.connect(filterNode);
+        noise.start(time);
+        noise.stop(time + channel.decay * 0.1 + 0.05);
+        break;
+      }
     }
   }
 
