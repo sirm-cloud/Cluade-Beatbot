@@ -659,6 +659,24 @@ body {
     </div>
 
     <div class="master-group">
+      <h3>Compressor</h3>
+      <div class="param" style="margin-bottom: 8px;">
+        <label style="display: flex; align-items: center; gap: 5px; font-size: 10px; color: #e0e0e0; cursor: pointer;">
+          <input type="checkbox" id="compressorOn" checked>
+          <span>Enable</span>
+        </label>
+      </div>
+      <div class="param">
+        <span class="param-label">Threshold <span class="param-value" id="compThresholdValue">-20 dB</span></span>
+        <input type="range" class="param-slider" id="compThreshold" min="-60" max="0" value="-20">
+      </div>
+      <div class="param">
+        <span class="param-label">Ratio <span class="param-value" id="compRatioValue">4:1</span></span>
+        <input type="range" class="param-slider" id="compRatio" min="1" max="20" value="4">
+      </div>
+    </div>
+
+    <div class="master-group">
       <h3>Export</h3>
       <div class="export-btns" style="margin-top: 8px;">
         <button class="export-btn" id="exportWav">WAV</button>
@@ -718,6 +736,11 @@ class DrumMachine {
     };
     this.patternChanged = false;
 
+    // Compressor settings
+    this.compressorEnabled = true;
+    this.compressorThreshold = -20;
+    this.compressorRatio = 4;
+
     this.setupEffects();
     this.loadPattern(0);
   }
@@ -745,9 +768,9 @@ class DrumMachine {
     this.masterGain.gain.value = 0.8;
 
     this.compressor = this.audioContext.createDynamicsCompressor();
-    this.compressor.threshold.value = -20;
+    this.compressor.threshold.value = this.compressorThreshold;
     this.compressor.knee.value = 10;
-    this.compressor.ratio.value = 4;
+    this.compressor.ratio.value = this.compressorEnabled ? this.compressorRatio : 1;
     this.compressor.attack.value = 0.003;
     this.compressor.release.value = 0.25;
 
@@ -1565,11 +1588,11 @@ class DrumMachine {
       const offlineMaster = offlineContext.createGain();
       offlineMaster.gain.value = this.masterGain.gain.value;
 
-      // Create compressor
+      // Create compressor with current settings
       const offlineCompressor = offlineContext.createDynamicsCompressor();
-      offlineCompressor.threshold.value = -20;
+      offlineCompressor.threshold.value = this.compressorThreshold;
       offlineCompressor.knee.value = 10;
-      offlineCompressor.ratio.value = 4;
+      offlineCompressor.ratio.value = this.compressorEnabled ? this.compressorRatio : 1;
       offlineCompressor.attack.value = 0.003;
       offlineCompressor.release.value = 0.25;
 
@@ -2024,7 +2047,10 @@ class DrumMachine {
       masterVolume: this.masterGain.gain.value,
       reverbMix: this.reverbGain.gain.value,
       delayMix: this.delayMix.gain.value,
-      delayFeedback: this.delayFeedback.gain.value
+      delayFeedback: this.delayFeedback.gain.value,
+      compressorEnabled: this.compressorEnabled,
+      compressorThreshold: this.compressorThreshold,
+      compressorRatio: this.compressorRatio
     };
 
     const json = JSON.stringify(project);
@@ -2067,6 +2093,17 @@ class DrumMachine {
           }
           if (project.delayFeedback !== undefined) {
             this.delayFeedback.gain.value = project.delayFeedback;
+          }
+          if (project.compressorEnabled !== undefined) {
+            this.compressorEnabled = project.compressorEnabled;
+          }
+          if (project.compressorThreshold !== undefined) {
+            this.compressorThreshold = project.compressorThreshold;
+            this.compressor.threshold.value = project.compressorThreshold;
+          }
+          if (project.compressorRatio !== undefined) {
+            this.compressorRatio = project.compressorRatio;
+            this.compressor.ratio.value = this.compressorEnabled ? project.compressorRatio : 1;
           }
 
           // Restore channel settings
@@ -2496,6 +2533,28 @@ class UI {
       this.machine.delayFeedback.gain.value = e.target.value / 100;
     };
 
+    // Compressor controls
+    document.getElementById('compressorOn').onchange = (e) => {
+      this.machine.compressorEnabled = e.target.checked;
+      this.machine.compressor.ratio.value = e.target.checked ? this.machine.compressorRatio : 1;
+    };
+
+    document.getElementById('compThreshold').oninput = (e) => {
+      const value = parseInt(e.target.value);
+      this.machine.compressorThreshold = value;
+      this.machine.compressor.threshold.value = value;
+      document.getElementById('compThresholdValue').textContent = value + ' dB';
+    };
+
+    document.getElementById('compRatio').oninput = (e) => {
+      const value = parseInt(e.target.value);
+      this.machine.compressorRatio = value;
+      if (this.machine.compressorEnabled) {
+        this.machine.compressor.ratio.value = value;
+      }
+      document.getElementById('compRatioValue').textContent = value + ':1';
+    };
+
     let dragging = false;
     const fader = document.getElementById('masterFader');
     const track = fader.parentElement;
@@ -2636,6 +2695,13 @@ class UI {
     // Update delay controls
     document.getElementById('delayMix').value = this.machine.delayMix.gain.value * 100;
     document.getElementById('delayFeedback').value = this.machine.delayFeedback.gain.value * 100;
+
+    // Update compressor controls
+    document.getElementById('compressorOn').checked = this.machine.compressorEnabled;
+    document.getElementById('compThreshold').value = this.machine.compressorThreshold;
+    document.getElementById('compThresholdValue').textContent = this.machine.compressorThreshold + ' dB';
+    document.getElementById('compRatio').value = this.machine.compressorRatio;
+    document.getElementById('compRatioValue').textContent = this.machine.compressorRatio + ':1';
 
     // Update current pattern display
     const labels = ['A1', 'A2', 'A3', 'A4', 'B1', 'B2', 'B3', 'B4',
