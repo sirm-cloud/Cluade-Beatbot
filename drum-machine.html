@@ -759,7 +759,7 @@ body {
   </div>
 </div>
 
-<div class="version">v2026.013.34</div>
+<div class="version">v2026.013.35</div>
 
 <script>
 // Audio Engine
@@ -2344,23 +2344,23 @@ class UI {
         </div>
         <div class="channel-params">
           <div class="param">
-            <span class="param-label">Volume</span>
+            <span class="param-label">Volume <span class="param-value" id="volume-${idx}">${Math.round(channel.volume * 100)}</span></span>
             <input type="range" class="param-slider" data-channel="${idx}" data-param="volume" min="0" max="100" value="${channel.volume * 100}">
           </div>
           <div class="param">
-            <span class="param-label">Pan</span>
+            <span class="param-label">Pan <span class="param-value" id="pan-${idx}">${Math.round(channel.pan * 100)}</span></span>
             <input type="range" class="param-slider" data-channel="${idx}" data-param="pan" min="-100" max="100" value="${channel.pan * 100}">
           </div>
           <div class="param">
-            <span class="param-label">Pitch</span>
+            <span class="param-label">Pitch <span class="param-value" id="pitch-${idx}">${channel.pitch}</span></span>
             <input type="range" class="param-slider" data-channel="${idx}" data-param="pitch" min="-24" max="24" value="${channel.pitch}">
           </div>
           <div class="param">
-            <span class="param-label">Decay</span>
+            <span class="param-label">Decay <span class="param-value" id="decay-${idx}">${Math.round(channel.decay * 100)}</span></span>
             <input type="range" class="param-slider" data-channel="${idx}" data-param="decay" min="0" max="100" value="${channel.decay * 100}">
           </div>
           <div class="param">
-            <span class="param-label">Filter Cutoff <span class="param-value" id="filterCutoff-${idx}">${channel.filterCutoff}</span></span>
+            <span class="param-label">Filter Cut <span class="param-value" id="filterCutoff-${idx}">${channel.filterCutoff}</span></span>
             <input type="range" class="param-slider filter-slider" id="filterCutoffSlider-${idx}" data-channel="${idx}" data-param="filterCutoff" min="0" max="100" value="${channel.filterCutoff}">
           </div>
           <div class="param">
@@ -2368,11 +2368,11 @@ class UI {
             <input type="range" class="param-slider filter-slider" id="filterResSlider-${idx}" data-channel="${idx}" data-param="filterRes" min="0" max="100" value="${channel.filterRes}">
           </div>
           <div class="param">
-            <span class="param-label">Reverb</span>
+            <span class="param-label">Reverb <span class="param-value" id="reverb-${idx}">${Math.round(channel.reverbSend * 100)}</span></span>
             <input type="range" class="param-slider" data-channel="${idx}" data-param="reverbSend" min="0" max="100" value="${channel.reverbSend * 100}">
           </div>
           <div class="param">
-            <span class="param-label">Delay</span>
+            <span class="param-label">Delay <span class="param-value" id="delay-${idx}">${Math.round(channel.delaySend * 100)}</span></span>
             <input type="range" class="param-slider" data-channel="${idx}" data-param="delaySend" min="0" max="100" value="${channel.delaySend * 100}">
           </div>
         </div>
@@ -2623,14 +2623,25 @@ class UI {
         const ch = parseInt(e.target.dataset.channel);
         const param = e.target.dataset.param;
         let value = parseFloat(e.target.value);
+        let displayValue = value;
 
         if (param === 'volume' || param === 'decay' || param === 'reverbSend' || param === 'delaySend') {
           value = value / 100;
+          displayValue = Math.round(e.target.value);
         } else if (param === 'pan') {
           value = value / 100;
+          displayValue = Math.round(e.target.value);
+        } else if (param === 'pitch') {
+          displayValue = value;
         }
 
         this.machine.channels[ch][param] = value;
+
+        // Update display value
+        const valueElement = document.getElementById(`${param}-${ch}`);
+        if (valueElement) {
+          valueElement.textContent = displayValue;
+        }
       }
     };
 
