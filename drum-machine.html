@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Studio Drum Machine</title>
+<title>Claude-Beatbot</title>
 <style>
 * {
   margin: 0;
@@ -36,6 +36,21 @@ body {
   padding: 0 20px;
   gap: 30px;
   border-bottom: 2px solid #0a0a0a;
+}
+
+.logo {
+  flex-shrink: 0;
+}
+
+.version {
+  position: fixed;
+  bottom: 8px;
+  right: 12px;
+  font-size: 10px;
+  color: #666;
+  font-family: 'Courier New', monospace;
+  z-index: 1000;
+  pointer-events: none;
 }
 
 .transport {
@@ -567,6 +582,43 @@ body {
 
 <div class="container">
   <div class="top-bar">
+    <div class="logo">
+      <svg width="180" height="40" viewBox="0 0 180 40" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="neonGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#ff00ff;stop-opacity:1" />
+            <stop offset="50%" style="stop-color:#00ffff;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#ff00ff;stop-opacity:1" />
+          </linearGradient>
+          <filter id="glow">
+            <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+            <feMerge>
+              <feMergeNode in="coloredBlur"/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
+        </defs>
+
+        <!-- Background grid lines -->
+        <line x1="0" y1="30" x2="180" y2="30" stroke="url(#neonGradient)" stroke-width="0.5" opacity="0.3"/>
+        <line x1="0" y1="35" x2="180" y2="35" stroke="url(#neonGradient)" stroke-width="0.5" opacity="0.2"/>
+
+        <!-- Text -->
+        <text x="5" y="16" font-family="Arial, sans-serif" font-size="14" font-weight="bold"
+              fill="url(#neonGradient)" filter="url(#glow)">CLAUDE</text>
+        <text x="5" y="28" font-family="Arial, sans-serif" font-size="9"
+              fill="#00ffff" opacity="0.8">BEATBOT</text>
+
+        <!-- Waveform decoration -->
+        <path d="M 100 20 Q 105 15, 110 20 T 120 20 T 130 20"
+              stroke="#ff00ff" stroke-width="2" fill="none" opacity="0.6" filter="url(#glow)"/>
+
+        <!-- Beat dots -->
+        <circle cx="140" cy="20" r="2" fill="#00ffff" opacity="0.8" filter="url(#glow)"/>
+        <circle cx="150" cy="20" r="2" fill="#ff00ff" opacity="0.6" filter="url(#glow)"/>
+        <circle cx="160" cy="20" r="2" fill="#00ffff" opacity="0.4" filter="url(#glow)"/>
+      </svg>
+    </div>
     <div class="transport">
       <button class="btn" id="playBtn">▶ Play</button>
       <button class="btn" id="stopBtn">■ Stop</button>
@@ -697,6 +749,8 @@ body {
     </div>
   </div>
 </div>
+
+<div class="version">v2026.013.13</div>
 
 <script>
 // Audio Engine
