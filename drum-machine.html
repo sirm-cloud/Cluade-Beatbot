@@ -759,7 +759,7 @@ body {
   </div>
 </div>
 
-<div class="version">v2026.013.36</div>
+<div class="version">v2026.013.37</div>
 
 <script>
 // Audio Engine
@@ -2131,7 +2131,11 @@ class DrumMachine {
       delayFeedback: this.delayFeedback.gain.value,
       compressorEnabled: this.compressorEnabled,
       compressorThreshold: this.compressorThreshold,
-      compressorRatio: this.compressorRatio
+      compressorRatio: this.compressorRatio,
+      song: {
+        chain: this.song.chain,
+        loop: this.song.loop
+      }
     };
 
     const json = JSON.stringify(project);
