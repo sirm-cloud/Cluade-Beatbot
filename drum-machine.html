@@ -783,6 +783,16 @@ class DrumMachine {
       this.shakerNoiseData[i] = Math.random() * 2 - 1;
     }
 
+    // Reverb impulse response (2s stereo)
+    const reverbLength = sampleRate * 2;
+    this.reverbImpulseDataL = new Float32Array(reverbLength);
+    this.reverbImpulseDataR = new Float32Array(reverbLength);
+    for (let i = 0; i < reverbLength; i++) {
+      const decay = Math.pow(1 - i / reverbLength, 2);
+      this.reverbImpulseDataL[i] = (Math.random() * 2 - 1) * decay;
+      this.reverbImpulseDataR[i] = (Math.random() * 2 - 1) * decay;
+    }
+
     // Create buffers for real-time playback
     this.snareNoiseBuffer = this.createNoiseBuffer(this.audioContext, this.snareNoiseData);
     this.clapNoiseBuffer = this.createNoiseBuffer(this.audioContext, this.clapNoiseData);
@@ -857,19 +867,12 @@ class DrumMachine {
   }
 
   createReverb() {
-    const sampleRate = this.audioContext.sampleRate;
-    const length = sampleRate * 2;
-    const impulse = this.audioContext.createBuffer(2, length, sampleRate);
-    const left = impulse.getChannelData(0);
-    const right = impulse.getChannelData(1);
-
-    for (let i = 0; i < length; i++) {
-      const decay = Math.pow(1 - i / length, 2);
-      left[i] = (Math.random() * 2 - 1) * decay;
-      right[i] = (Math.random() * 2 - 1) * decay;
-    }
-
-    this.convolver.buffer = impulse;
+    // Use pre-generated reverb impulse data for consistency
+    this.convolver.buffer = this.createStereoNoiseBuffer(
+      this.audioContext,
+      this.reverbImpulseDataL,
+      this.reverbImpulseDataR
+    );
   }
 
   playSound(channelIndex, time, velocity = 0.8) {
@@ -1617,22 +1620,17 @@ class DrumMachine {
       offlineCompressor.attack.value = 0.003;
       offlineCompressor.release.value = 0.25;
 
-      // Create reverb
+      // Create reverb using pre-generated impulse data for consistency
       const offlineConvolver = offlineContext.createConvolver();
       const offlineReverbGain = offlineContext.createGain();
       offlineReverbGain.gain.value = this.reverbGain.gain.value;
 
-      // Create reverb impulse response
-      const reverbLength = sampleRate * 2;
-      const reverbImpulse = offlineContext.createBuffer(2, reverbLength, sampleRate);
-      const reverbLeft = reverbImpulse.getChannelData(0);
-      const reverbRight = reverbImpulse.getChannelData(1);
-      for (let i = 0; i < reverbLength; i++) {
-        const decay = Math.pow(1 - i / reverbLength, 2);
-        reverbLeft[i] = (Math.random() * 2 - 1) * decay;
-        reverbRight[i] = (Math.random() * 2 - 1) * decay;
-      }
-      offlineConvolver.buffer = reverbImpulse;
+      // Use the same pre-generated reverb impulse data as live playback
+      offlineConvolver.buffer = this.createStereoNoiseBuffer(
+        offlineContext,
+        this.reverbImpulseDataL,
+        this.reverbImpulseDataR
+      );
 
       // Create delay
       const offlineDelay = offlineContext.createDelay();
