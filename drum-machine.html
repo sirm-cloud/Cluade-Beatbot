@@ -436,7 +436,15 @@ body {
   font-weight: 600;
   white-space: nowrap;
   position: relative;
-  cursor: pointer;
+  cursor: move;
+}
+
+.song-chain-item.dragging {
+  opacity: 0.5;
+}
+
+.song-chain-item.drag-over {
+  border-left: 3px solid #FF9800;
 }
 
 .song-chain-item.playing {
@@ -2191,10 +2199,53 @@ class UI {
         item.className = 'song-chain-item';
         item.textContent = labels[patternIdx];
         item.dataset.index = idx;
+        item.draggable = true;
 
         if (this.machine.isPlaying && this.machine.songMode && idx === this.machine.song.currentPosition) {
           item.classList.add('playing');
         }
+
+        // Drag and drop handlers
+        item.ondragstart = (e) => {
+          e.dataTransfer.effectAllowed = 'move';
+          e.dataTransfer.setData('text/plain', idx);
+          item.classList.add('dragging');
+        };
+
+        item.ondragend = (e) => {
+          item.classList.remove('dragging');
+          // Remove drag-over class from all items
+          document.querySelectorAll('.song-chain-item').forEach(el => {
+            el.classList.remove('drag-over');
+          });
+        };
+
+        item.ondragover = (e) => {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'move';
+          item.classList.add('drag-over');
+        };
+
+        item.ondragleave = (e) => {
+          item.classList.remove('drag-over');
+        };
+
+        item.ondrop = (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          item.classList.remove('drag-over');
+
+          const fromIndex = parseInt(e.dataTransfer.getData('text/plain'));
+          const toIndex = idx;
+
+          if (fromIndex !== toIndex) {
+            // Remove item from old position
+            const [movedPattern] = this.machine.song.chain.splice(fromIndex, 1);
+            // Insert at new position
+            this.machine.song.chain.splice(toIndex, 0, movedPattern);
+            this.renderSongChain();
+          }
+        };
 
         const removeBtn = document.createElement('span');
         removeBtn.className = 'song-chain-remove';
