@@ -757,10 +757,18 @@ class DrumMachine {
       this.snareNoiseData[i] = Math.random() * 2 - 1;
     }
 
-    // Clap noise (0.05s mono, used 3 times)
-    this.clapNoiseData = new Float32Array(sampleRate * 0.05);
-    for (let i = 0; i < this.clapNoiseData.length; i++) {
-      this.clapNoiseData[i] = Math.random() * 2 - 1;
+    // Clap noise (0.05s mono, three different buffers for realistic clap)
+    this.clapNoiseData1 = new Float32Array(sampleRate * 0.05);
+    for (let i = 0; i < this.clapNoiseData1.length; i++) {
+      this.clapNoiseData1[i] = Math.random() * 2 - 1;
+    }
+    this.clapNoiseData2 = new Float32Array(sampleRate * 0.05);
+    for (let i = 0; i < this.clapNoiseData2.length; i++) {
+      this.clapNoiseData2[i] = Math.random() * 2 - 1;
+    }
+    this.clapNoiseData3 = new Float32Array(sampleRate * 0.05);
+    for (let i = 0; i < this.clapNoiseData3.length; i++) {
+      this.clapNoiseData3[i] = Math.random() * 2 - 1;
     }
 
     // Hihat noise (0.2s mono)
@@ -795,7 +803,9 @@ class DrumMachine {
 
     // Create buffers for real-time playback
     this.snareNoiseBuffer = this.createNoiseBuffer(this.audioContext, this.snareNoiseData);
-    this.clapNoiseBuffer = this.createNoiseBuffer(this.audioContext, this.clapNoiseData);
+    this.clapNoiseBuffer1 = this.createNoiseBuffer(this.audioContext, this.clapNoiseData1);
+    this.clapNoiseBuffer2 = this.createNoiseBuffer(this.audioContext, this.clapNoiseData2);
+    this.clapNoiseBuffer3 = this.createNoiseBuffer(this.audioContext, this.clapNoiseData3);
     this.hihatNoiseBuffer = this.createNoiseBuffer(this.audioContext, this.hihatNoiseData);
     this.cymbalNoiseBuffer = this.createStereoNoiseBuffer(this.audioContext, this.cymbalNoiseDataL, this.cymbalNoiseDataR);
     this.shakerNoiseBuffer = this.createNoiseBuffer(this.audioContext, this.shakerNoiseData);
@@ -1068,10 +1078,11 @@ class DrumMachine {
     clickOsc.start(time);
     clickOsc.stop(time + 0.02);
 
-    // Noise bursts
+    // Noise bursts - use three different buffers for realistic clap
+    const clapBuffers = [this.clapNoiseBuffer1, this.clapNoiseBuffer2, this.clapNoiseBuffer3];
     for (let i = 0; i < 3; i++) {
       const noise = this.audioContext.createBufferSource();
-      noise.buffer = this.clapNoiseBuffer;
+      noise.buffer = clapBuffers[i];
 
       const gain = this.audioContext.createGain();
       const t = time + i * 0.015;
@@ -1812,9 +1823,11 @@ class DrumMachine {
         clickOsc.start(time);
         clickOsc.stop(time + 0.02);
 
+        // Use three different noise buffers for realistic clap
+        const clapData = [this.clapNoiseData1, this.clapNoiseData2, this.clapNoiseData3];
         for (let i = 0; i < 3; i++) {
           const noise = ctx.createBufferSource();
-          noise.buffer = this.createNoiseBuffer(ctx, this.clapNoiseData);
+          noise.buffer = this.createNoiseBuffer(ctx, clapData[i]);
           const gain = ctx.createGain();
           const t = time + i * 0.015;
           gain.gain.setValueAtTime(vol * 0.6, t);
