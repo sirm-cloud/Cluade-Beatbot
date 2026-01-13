@@ -1452,37 +1452,61 @@ class DrumMachine {
       return 45;
     };
 
+    // Determine which patterns to export
+    let patternsToExport;
+    let filename;
+    if (this.songMode && this.song.chain.length > 0) {
+      // Export entire song
+      patternsToExport = this.song.chain;
+      filename = 'drum-song.mid';
+    } else {
+      // Export current pattern only
+      patternsToExport = [this.currentPattern];
+      filename = 'drum-pattern.mid';
+    }
+
     // Create MIDI file
     const tracks = [];
     const ticksPerBeat = 480;
     const tempo = this.tempo;
+    const ticksPerPattern = ticksPerBeat * 4; // 16 steps = 4 beats
 
     // Build track for each channel
     this.channels.forEach((channel, chIdx) => {
       const events = [];
       const midiNote = channel.type === 'tom' ? getTomNote(chIdx) : midiNotes[channel.type];
 
-      channel.steps.forEach((step, stepIdx) => {
-        if (step) {
-          const tick = stepIdx * (ticksPerBeat / 4); // 16th notes
-          const velocity = Math.floor(step * 127);
+      // Process each pattern in the export
+      patternsToExport.forEach((patternIndex, patternPosition) => {
+        const pattern = this.patterns[patternIndex];
+        const patternTickOffset = patternPosition * ticksPerPattern;
 
-          // Note on
-          events.push({
-            delta: tick,
-            type: 'noteOn',
-            note: midiNote,
-            velocity: velocity
-          });
+        // Get steps for this channel from the pattern
+        pattern[chIdx].steps.forEach((step, stepIdx) => {
+          if (step && !channel.mute) {
+            const hasSolo = this.channels.some(ch => ch.solo);
+            if (!hasSolo || channel.solo) {
+              const tick = patternTickOffset + (stepIdx * (ticksPerBeat / 4)); // 16th notes
+              const velocity = Math.floor(step * 127);
 
-          // Note off (short duration)
-          events.push({
-            delta: tick + 10,
-            type: 'noteOff',
-            note: midiNote,
-            velocity: 0
-          });
-        }
+              // Note on
+              events.push({
+                delta: tick,
+                type: 'noteOn',
+                note: midiNote,
+                velocity: velocity
+              });
+
+              // Note off (short duration)
+              events.push({
+                delta: tick + 10,
+                type: 'noteOff',
+                note: midiNote,
+                velocity: 0
+              });
+            }
+          }
+        });
       });
 
       if (events.length > 0) {
@@ -1496,7 +1520,7 @@ class DrumMachine {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'drum-pattern.mid';
+    a.download = filename;
     a.click();
     URL.revokeObjectURL(url);
   }
