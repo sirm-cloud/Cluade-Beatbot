@@ -742,7 +742,66 @@ class DrumMachine {
     this.compressorRatio = 4;
 
     this.setupEffects();
+    this.createNoiseBuffers();
     this.loadPattern(0);
+  }
+
+  createNoiseBuffers() {
+    // Pre-generate noise data so each drum hit sounds identical
+    // Store as raw Float32Arrays that can be used in any AudioContext
+    const sampleRate = this.audioContext.sampleRate;
+
+    // Snare noise (0.2s mono)
+    this.snareNoiseData = new Float32Array(sampleRate * 0.2);
+    for (let i = 0; i < this.snareNoiseData.length; i++) {
+      this.snareNoiseData[i] = Math.random() * 2 - 1;
+    }
+
+    // Clap noise (0.05s mono, used 3 times)
+    this.clapNoiseData = new Float32Array(sampleRate * 0.05);
+    for (let i = 0; i < this.clapNoiseData.length; i++) {
+      this.clapNoiseData[i] = Math.random() * 2 - 1;
+    }
+
+    // Hihat noise (0.2s mono)
+    this.hihatNoiseData = new Float32Array(sampleRate * 0.2);
+    for (let i = 0; i < this.hihatNoiseData.length; i++) {
+      this.hihatNoiseData[i] = Math.random() * 2 - 1;
+    }
+
+    // Cymbal noise (1s stereo for crash/ride)
+    this.cymbalNoiseDataL = new Float32Array(sampleRate);
+    this.cymbalNoiseDataR = new Float32Array(sampleRate);
+    for (let i = 0; i < sampleRate; i++) {
+      this.cymbalNoiseDataL[i] = Math.random() * 2 - 1;
+      this.cymbalNoiseDataR[i] = Math.random() * 2 - 1;
+    }
+
+    // Shaker noise (0.05s mono)
+    this.shakerNoiseData = new Float32Array(sampleRate * 0.05);
+    for (let i = 0; i < this.shakerNoiseData.length; i++) {
+      this.shakerNoiseData[i] = Math.random() * 2 - 1;
+    }
+
+    // Create buffers for real-time playback
+    this.snareNoiseBuffer = this.createNoiseBuffer(this.audioContext, this.snareNoiseData);
+    this.clapNoiseBuffer = this.createNoiseBuffer(this.audioContext, this.clapNoiseData);
+    this.hihatNoiseBuffer = this.createNoiseBuffer(this.audioContext, this.hihatNoiseData);
+    this.cymbalNoiseBuffer = this.createStereoNoiseBuffer(this.audioContext, this.cymbalNoiseDataL, this.cymbalNoiseDataR);
+    this.shakerNoiseBuffer = this.createNoiseBuffer(this.audioContext, this.shakerNoiseData);
+  }
+
+  createNoiseBuffer(ctx, noiseData) {
+    const buffer = ctx.createBuffer(1, noiseData.length, ctx.sampleRate);
+    buffer.getChannelData(0).set(noiseData);
+    return buffer;
+  }
+
+  createStereoNoiseBuffer(ctx, noiseDataL, noiseDataR) {
+    const buffer = ctx.createBuffer(2, noiseDataL.length, ctx.sampleRate);
+    buffer.getChannelData(0).set(noiseDataL);
+    buffer.getChannelData(1).set(noiseDataR);
+    return buffer;
   }
 
   copyPattern() {
@@ -938,15 +997,8 @@ class DrumMachine {
     const panNode = this.audioContext.createStereoPanner();
     panNode.pan.value = channel.pan;
 
-    const bufferSize = this.audioContext.sampleRate * 0.2;
-    const buffer = this.audioContext.createBuffer(1, bufferSize, this.audioContext.sampleRate);
-    const data = buffer.getChannelData(0);
-    for (let i = 0; i < bufferSize; i++) {
-      data[i] = Math.random() * 2 - 1;
-    }
-
     const noise = this.audioContext.createBufferSource();
-    noise.buffer = buffer;
+    noise.buffer = this.snareNoiseBuffer;
 
     const hpf = this.audioContext.createBiquadFilter();
     hpf.type = 'highpass';
@@ -1015,15 +1067,8 @@ class DrumMachine {
 
     // Noise bursts
     for (let i = 0; i < 3; i++) {
-      const bufferSize = this.audioContext.sampleRate * 0.05;
-      const buffer = this.audioContext.createBuffer(1, bufferSize, this.audioContext.sampleRate);
-      const data = buffer.getChannelData(0);
-      for (let j = 0; j < bufferSize; j++) {
-        data[j] = Math.random() * 2 - 1;
-      }
-
       const noise = this.audioContext.createBufferSource();
-      noise.buffer = buffer;
+      noise.buffer = this.clapNoiseBuffer;
 
       const gain = this.audioContext.createGain();
       const t = time + i * 0.015;
@@ -1053,15 +1098,8 @@ class DrumMachine {
   }
 
   playHihat(time, vol, channel, duration) {
-    const bufferSize = this.audioContext.sampleRate * 0.2;
-    const buffer = this.audioContext.createBuffer(1, bufferSize, this.audioContext.sampleRate);
-    const data = buffer.getChannelData(0);
-    for (let i = 0; i < bufferSize; i++) {
-      data[i] = Math.random() * 2 - 1;
-    }
-
     const noise = this.audioContext.createBufferSource();
-    noise.buffer = buffer;
+    noise.buffer = this.hihatNoiseBuffer;
 
     const hpf = this.audioContext.createBiquadFilter();
     hpf.type = 'highpass';
@@ -1100,18 +1138,8 @@ class DrumMachine {
   }
 
   playCymbal(time, vol, channel, cutoff) {
-    const bufferSize = this.audioContext.sampleRate;
-    const buffer = this.audioContext.createBuffer(2, bufferSize, this.audioContext.sampleRate);
-    const left = buffer.getChannelData(0);
-    const right = buffer.getChannelData(1);
-
-    for (let i = 0; i < bufferSize; i++) {
-      left[i] = Math.random() * 2 - 1;
-      right[i] = Math.random() * 2 - 1;
-    }
-
     const noise = this.audioContext.createBufferSource();
-    noise.buffer = buffer;
+    noise.buffer = this.cymbalNoiseBuffer;
 
     const hpf = this.audioContext.createBiquadFilter();
     hpf.type = 'highpass';
@@ -1224,15 +1252,8 @@ class DrumMachine {
   }
 
   playShaker(time, vol, channel) {
-    const bufferSize = this.audioContext.sampleRate * 0.05;
-    const buffer = this.audioContext.createBuffer(1, bufferSize, this.audioContext.sampleRate);
-    const data = buffer.getChannelData(0);
-    for (let i = 0; i < bufferSize; i++) {
-      data[i] = Math.random() * 2 - 1;
-    }
-
     const noise = this.audioContext.createBufferSource();
-    noise.buffer = buffer;
+    noise.buffer = this.shakerNoiseBuffer;
 
     const hpf = this.audioContext.createBiquadFilter();
     hpf.type = 'highpass';
@@ -1755,14 +1776,8 @@ class DrumMachine {
 
       case 'snare': {
         const freq = 180 * Math.pow(2, channel.pitch / 12);
-        const bufferSize = ctx.sampleRate * 0.2;
-        const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-        const data = buffer.getChannelData(0);
-        for (let i = 0; i < bufferSize; i++) {
-          data[i] = Math.random() * 2 - 1;
-        }
         const noise = ctx.createBufferSource();
-        noise.buffer = buffer;
+        noise.buffer = this.createNoiseBuffer(ctx, this.snareNoiseData);
         const hpf = ctx.createBiquadFilter();
         hpf.type = 'highpass';
         hpf.frequency.value = 1000 * Math.pow(2, channel.pitch / 24);
@@ -1800,14 +1815,8 @@ class DrumMachine {
         clickOsc.stop(time + 0.02);
 
         for (let i = 0; i < 3; i++) {
-          const bufferSize = ctx.sampleRate * 0.05;
-          const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-          const data = buffer.getChannelData(0);
-          for (let j = 0; j < bufferSize; j++) {
-            data[j] = Math.random() * 2 - 1;
-          }
           const noise = ctx.createBufferSource();
-          noise.buffer = buffer;
+          noise.buffer = this.createNoiseBuffer(ctx, this.clapNoiseData);
           const gain = ctx.createGain();
           const t = time + i * 0.015;
           gain.gain.setValueAtTime(vol * 0.6, t);
@@ -1821,14 +1830,8 @@ class DrumMachine {
       }
 
       case 'hihat': {
-        const bufferSize = ctx.sampleRate * 0.2;
-        const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-        const data = buffer.getChannelData(0);
-        for (let i = 0; i < bufferSize; i++) {
-          data[i] = Math.random() * 2 - 1;
-        }
         const noise = ctx.createBufferSource();
-        noise.buffer = buffer;
+        noise.buffer = this.createNoiseBuffer(ctx, this.hihatNoiseData);
         const hpf = ctx.createBiquadFilter();
         hpf.type = 'highpass';
         hpf.frequency.value = 7000 * Math.pow(2, channel.pitch / 12);
@@ -1844,14 +1847,8 @@ class DrumMachine {
       }
 
       case 'ohhat': {
-        const bufferSize = ctx.sampleRate * 0.2;
-        const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-        const data = buffer.getChannelData(0);
-        for (let i = 0; i < bufferSize; i++) {
-          data[i] = Math.random() * 2 - 1;
-        }
         const noise = ctx.createBufferSource();
-        noise.buffer = buffer;
+        noise.buffer = this.createNoiseBuffer(ctx, this.hihatNoiseData);
         const hpf = ctx.createBiquadFilter();
         hpf.type = 'highpass';
         hpf.frequency.value = 7000 * Math.pow(2, channel.pitch / 12);
@@ -1867,16 +1864,8 @@ class DrumMachine {
       }
 
       case 'crash': {
-        const bufferSize = ctx.sampleRate;
-        const buffer = ctx.createBuffer(2, bufferSize, ctx.sampleRate);
-        const left = buffer.getChannelData(0);
-        const right = buffer.getChannelData(1);
-        for (let i = 0; i < bufferSize; i++) {
-          left[i] = Math.random() * 2 - 1;
-          right[i] = Math.random() * 2 - 1;
-        }
         const noise = ctx.createBufferSource();
-        noise.buffer = buffer;
+        noise.buffer = this.createStereoNoiseBuffer(ctx, this.cymbalNoiseDataL, this.cymbalNoiseDataR);
         const hpf = ctx.createBiquadFilter();
         hpf.type = 'highpass';
         hpf.frequency.value = 8000 * Math.pow(2, channel.pitch / 12);
@@ -1892,16 +1881,8 @@ class DrumMachine {
       }
 
       case 'ride': {
-        const bufferSize = ctx.sampleRate;
-        const buffer = ctx.createBuffer(2, bufferSize, ctx.sampleRate);
-        const left = buffer.getChannelData(0);
-        const right = buffer.getChannelData(1);
-        for (let i = 0; i < bufferSize; i++) {
-          left[i] = Math.random() * 2 - 1;
-          right[i] = Math.random() * 2 - 1;
-        }
         const noise = ctx.createBufferSource();
-        noise.buffer = buffer;
+        noise.buffer = this.createStereoNoiseBuffer(ctx, this.cymbalNoiseDataL, this.cymbalNoiseDataR);
         const hpf = ctx.createBiquadFilter();
         hpf.type = 'highpass';
         hpf.frequency.value = 3000 * Math.pow(2, channel.pitch / 12);
@@ -1947,14 +1928,8 @@ class DrumMachine {
       }
 
       case 'shaker': {
-        const bufferSize = ctx.sampleRate * 0.05;
-        const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-        const data = buffer.getChannelData(0);
-        for (let i = 0; i < bufferSize; i++) {
-          data[i] = Math.random() * 2 - 1;
-        }
         const noise = ctx.createBufferSource();
-        noise.buffer = buffer;
+        noise.buffer = this.createNoiseBuffer(ctx, this.shakerNoiseData);
         const hpf = ctx.createBiquadFilter();
         hpf.type = 'highpass';
         hpf.frequency.value = 5000 * Math.pow(2, channel.pitch / 12);
