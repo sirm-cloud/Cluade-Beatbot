@@ -255,6 +255,59 @@ body {
   border-top: 1px solid #333;
 }
 
+.pattern-controls {
+  padding: 8px 12px;
+  background: #222;
+  border-radius: 6px;
+}
+
+.length-btn {
+  background: #2a2a2a;
+  border: 1px solid #444;
+  color: #999;
+  padding: 5px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
+  transition: all 0.2s;
+  min-width: 40px;
+}
+
+.length-btn:hover {
+  background: #333;
+  border-color: #555;
+}
+
+.length-btn.active {
+  background: #4CAF50;
+  border-color: #4CAF50;
+  color: #fff;
+}
+
+.page-btn {
+  background: #2a2a2a;
+  border: 1px solid #444;
+  color: #999;
+  padding: 4px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.2s;
+  min-width: 32px;
+}
+
+.page-btn:hover {
+  background: #333;
+  border-color: #555;
+  color: #ddd;
+}
+
+.page-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
 .grid-container {
   display: inline-block;
   min-width: 100%;
@@ -686,6 +739,22 @@ body {
         </div>
       </div>
     </div>
+
+    <div class="pattern-controls">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div style="display: flex; gap: 8px; align-items: center;">
+          <span style="color: #999; font-size: 11px; text-transform: uppercase;">Length:</span>
+          <button class="length-btn active" id="length16" data-length="16">16</button>
+          <button class="length-btn" id="length32" data-length="32">32</button>
+          <button class="length-btn" id="length64" data-length="64">64</button>
+        </div>
+        <div style="display: flex; gap: 8px; align-items: center;">
+          <button class="page-btn" id="prevPage">◀</button>
+          <span id="pageIndicator" style="color: #999; font-size: 11px; min-width: 60px; text-align: center;">1-16</span>
+          <button class="page-btn" id="nextPage">▶</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <div class="master-section">
@@ -759,7 +828,7 @@ body {
   </div>
 </div>
 
-<div class="version">v2026.013.37</div>
+<div class="version">v2026.013.38</div>
 
 <script>
 // Audio Engine
@@ -794,6 +863,12 @@ class DrumMachine {
     this.patterns = Array(16).fill(null).map(() =>
       this.channels.map(ch => ({ steps: Array(16).fill(null) }))
     );
+
+    // Pattern length tracking (16, 32, or 64 steps per pattern)
+    this.patternLengths = Array(16).fill(16);
+
+    // Current page for each pattern (0-based, 16 steps per page)
+    this.patternPages = Array(16).fill(0);
 
     this.clipboard = null;
 
@@ -1408,8 +1483,17 @@ class DrumMachine {
       this.nextNote();
       this.currentStep++;
 
+      // Determine current pattern and its length
+      let currentPatternIndex;
+      if (this.songMode && this.song.chain.length > 0) {
+        currentPatternIndex = this.song.chain[this.song.currentPosition];
+      } else {
+        currentPatternIndex = this.currentPattern;
+      }
+      const patternLength = this.patternLengths[currentPatternIndex];
+
       // Handle pattern/song advancement
-      if (this.currentStep >= 16) {
+      if (this.currentStep >= patternLength) {
         this.currentStep = 0;
 
         if (this.songMode && this.song.chain.length > 0) {
@@ -1500,6 +1584,39 @@ class DrumMachine {
     }
   }
 
+  resizePattern(patternIndex, newLength) {
+    const oldLength = this.patternLengths[patternIndex];
+
+    if (newLength === oldLength) return;
+
+    // Save current pattern first
+    this.savePattern(patternIndex);
+
+    // Resize each channel's steps
+    this.patterns[patternIndex].forEach(channel => {
+      if (newLength > oldLength) {
+        // Extending: add empty steps
+        const additionalSteps = newLength - oldLength;
+        channel.steps = [...channel.steps, ...Array(additionalSteps).fill(null)];
+      } else {
+        // Shortening: truncate steps
+        channel.steps = channel.steps.slice(0, newLength);
+      }
+    });
+
+    // Update pattern length
+    this.patternLengths[patternIndex] = newLength;
+
+    // Reset to first page if current page is out of bounds
+    const maxPages = Math.ceil(newLength / 16);
+    if (this.patternPages[patternIndex] >= maxPages) {
+      this.patternPages[patternIndex] = maxPages - 1;
+    }
+
+    // Reload the pattern to update active channels
+    this.loadPattern(patternIndex);
+  }
+
   exportMIDI() {
     // MIDI note mappings for GM Drum Kit
     const midiNotes = {
@@ -1540,17 +1657,20 @@ class DrumMachine {
     const tracks = [];
     const ticksPerBeat = 480;
     const tempo = this.tempo;
-    const ticksPerPattern = ticksPerBeat * 4; // 16 steps = 4 beats
 
     // Build track for each channel
     this.channels.forEach((channel, chIdx) => {
       const events = [];
       const midiNote = channel.type === 'tom' ? getTomNote(chIdx) : midiNotes[channel.type];
 
+      // Track cumulative tick offset for variable-length patterns
+      let cumulativeTickOffset = 0;
+
       // Process each pattern in the export
       patternsToExport.forEach((patternIndex, patternPosition) => {
         const pattern = this.patterns[patternIndex];
-        const patternTickOffset = patternPosition * ticksPerPattern;
+        const patternLength = this.patternLengths[patternIndex];
+        const patternTickOffset = cumulativeTickOffset;
 
         // Get steps for this channel from the pattern
         pattern[chIdx].steps.forEach((step, stepIdx) => {
@@ -1578,6 +1698,9 @@ class DrumMachine {
             }
           }
         });
+
+        // Update cumulative offset for next pattern
+        cumulativeTickOffset += (patternLength / 16) * (ticksPerBeat * 4);
       });
 
       if (events.length > 0) {
@@ -1695,19 +1818,22 @@ class DrumMachine {
   async exportWAV() {
     try {
       const secondsPerBeat = 60.0 / this.tempo;
-      const patternDuration = secondsPerBeat * 4; // 16 steps = 4 beats
 
       let totalDuration;
       let patternsToRender;
 
       if (this.songMode && this.song.chain.length > 0) {
-        // Export entire song
-        totalDuration = patternDuration * this.song.chain.length;
+        // Export entire song - sum up all pattern durations
         patternsToRender = this.song.chain;
+        totalDuration = patternsToRender.reduce((sum, patternIndex) => {
+          const patternLength = this.patternLengths[patternIndex];
+          return sum + (secondsPerBeat * patternLength / 4); // Convert steps to beats
+        }, 0);
       } else {
         // Export current pattern only
-        totalDuration = patternDuration;
         patternsToRender = [this.currentPattern];
+        const patternLength = this.patternLengths[this.currentPattern];
+        totalDuration = secondsPerBeat * patternLength / 4;
       }
 
       // Create offline context for rendering
@@ -1769,8 +1895,9 @@ class DrumMachine {
 
       patternsToRender.forEach(patternIndex => {
         const pattern = this.patterns[patternIndex];
+        const patternLength = this.patternLengths[patternIndex];
 
-        for (let step = 0; step < 16; step++) {
+        for (let step = 0; step < patternLength; step++) {
           const secondsPer16th = secondsPerBeat / 4;
           let stepTime = patternStartTime + (step * secondsPer16th);
 
@@ -1790,7 +1917,8 @@ class DrumMachine {
           });
         }
 
-        patternStartTime += patternDuration;
+        // Update start time for next pattern
+        patternStartTime += (secondsPerBeat * patternLength / 4);
       });
 
       // Render audio
@@ -2111,6 +2239,8 @@ class DrumMachine {
     const project = {
       patterns: this.patterns,
       currentPattern: this.currentPattern,
+      patternLengths: this.patternLengths,
+      patternPages: this.patternPages,
       channels: this.channels.map(ch => ({
         volume: ch.volume,
         pan: ch.pan,
@@ -2161,6 +2291,20 @@ class DrumMachine {
 
           // Restore patterns
           this.patterns = project.patterns;
+
+          // Restore pattern lengths (default to 16 for backward compatibility)
+          if (project.patternLengths) {
+            this.patternLengths = project.patternLengths;
+          } else {
+            this.patternLengths = Array(16).fill(16);
+          }
+
+          // Restore pattern pages (default to 0)
+          if (project.patternPages) {
+            this.patternPages = project.patternPages;
+          } else {
+            this.patternPages = Array(16).fill(0);
+          }
 
           // Restore global settings
           this.tempo = project.tempo || 120;
@@ -2416,14 +2560,27 @@ class UI {
     container.appendChild(gridContainer);
 
     // Determine which pattern to display
-    let patternToDisplay;
+    let patternToDisplay, patternIndex;
     if (this.machine.songMode && this.machine.isPlaying && this.machine.song.chain.length > 0) {
       // Show current pattern from song
-      patternToDisplay = this.machine.patterns[this.machine.song.chain[this.machine.song.currentPosition]];
+      patternIndex = this.machine.song.chain[this.machine.song.currentPosition];
+      patternToDisplay = this.machine.patterns[patternIndex];
     } else {
       // Show current selected pattern (from channels)
-      patternToDisplay = this.machine.patterns[this.machine.currentPattern];
+      patternIndex = this.machine.currentPattern;
+      patternToDisplay = this.machine.patterns[patternIndex];
     }
+
+    // Get pattern length and current page
+    const patternLength = this.machine.patternLengths[patternIndex];
+    const currentPage = this.machine.patternPages[patternIndex];
+    const pageOffset = currentPage * 16;
+
+    // Update pattern length buttons
+    this.updateLengthButtons(patternLength);
+
+    // Update pagination controls
+    this.updatePaginationControls(patternIndex);
 
     this.machine.channels.forEach((channel, chIdx) => {
       const rowContainer = document.createElement('div');
@@ -2437,17 +2594,26 @@ class UI {
       const row = document.createElement('div');
       row.className = 'step-grid';
 
+      // Render 16 steps starting from pageOffset
       for (let step = 0; step < 16; step++) {
+        const actualStep = pageOffset + step;
         const stepDiv = document.createElement('div');
         stepDiv.className = 'step';
         stepDiv.dataset.channel = chIdx;
-        stepDiv.dataset.step = step;
+        stepDiv.dataset.step = actualStep; // Store actual step number
 
-        const stepData = patternToDisplay[chIdx].steps[step];
+        // Only show step if within pattern length
+        if (actualStep < patternLength) {
+          const stepData = patternToDisplay[chIdx].steps[actualStep];
 
-        if (stepData) {
-          stepDiv.classList.add('active');
-          stepDiv.style.opacity = stepData;
+          if (stepData) {
+            stepDiv.classList.add('active');
+            stepDiv.style.opacity = stepData;
+          }
+        } else {
+          // Gray out steps beyond pattern length
+          stepDiv.style.opacity = '0.2';
+          stepDiv.style.cursor = 'not-allowed';
         }
 
         row.appendChild(stepDiv);
@@ -2456,6 +2622,33 @@ class UI {
       rowContainer.appendChild(row);
       gridContainer.appendChild(rowContainer);
     });
+  }
+
+  updateLengthButtons(patternLength) {
+    document.querySelectorAll('.length-btn').forEach(btn => {
+      btn.classList.remove('active');
+      if (parseInt(btn.dataset.length) === patternLength) {
+        btn.classList.add('active');
+      }
+    });
+  }
+
+  updatePaginationControls(patternIndex) {
+    const patternLength = this.machine.patternLengths[patternIndex];
+    const currentPage = this.machine.patternPages[patternIndex];
+    const maxPages = Math.ceil(patternLength / 16);
+
+    // Update page indicator
+    const startStep = currentPage * 16 + 1;
+    const endStep = Math.min((currentPage + 1) * 16, patternLength);
+    document.getElementById('pageIndicator').textContent = `${startStep}-${endStep}`;
+
+    // Update button states
+    const prevBtn = document.getElementById('prevPage');
+    const nextBtn = document.getElementById('nextPage');
+
+    prevBtn.disabled = currentPage === 0;
+    nextBtn.disabled = currentPage >= maxPages - 1;
   }
 
   renderPatternBank() {
@@ -2593,6 +2786,12 @@ class UI {
 
         const ch = parseInt(e.target.dataset.channel);
         const step = parseInt(e.target.dataset.step);
+
+        // Don't allow editing steps beyond pattern length
+        const patternLength = this.machine.patternLengths[this.machine.currentPattern];
+        if (step >= patternLength) {
+          return;
+        }
 
         if (this.machine.channels[ch].steps[step]) {
           this.machine.channels[ch].steps[step] = null;
@@ -2750,19 +2949,67 @@ class UI {
 
     document.getElementById('clearPattern').onclick = () => {
       if (confirm('Clear current pattern?')) {
+        const patternLength = this.machine.patternLengths[this.machine.currentPattern];
         this.machine.channels.forEach(ch => {
-          ch.steps = Array(16).fill(null);
+          ch.steps = Array(patternLength).fill(null);
         });
         this.machine.savePattern(this.machine.currentPattern);
+        this.renderSequencer();
+      }
+    };
+
+    // Pattern length selection
+    document.querySelectorAll('.length-btn').forEach(btn => {
+      btn.onclick = () => {
+        const newLength = parseInt(btn.dataset.length);
+        this.machine.resizePattern(this.machine.currentPattern, newLength);
+        this.renderSequencer();
+      };
+    });
+
+    // Page navigation
+    document.getElementById('prevPage').onclick = () => {
+      const patternIndex = this.machine.currentPattern;
+      if (this.machine.patternPages[patternIndex] > 0) {
+        this.machine.patternPages[patternIndex]--;
+        this.renderSequencer();
+      }
+    };
+
+    document.getElementById('nextPage').onclick = () => {
+      const patternIndex = this.machine.currentPattern;
+      const patternLength = this.machine.patternLengths[patternIndex];
+      const maxPages = Math.ceil(patternLength / 16);
+      if (this.machine.patternPages[patternIndex] < maxPages - 1) {
+        this.machine.patternPages[patternIndex]++;
         this.renderSequencer();
       }
     };
   }
 
   updatePlayhead() {
+    // Determine current pattern index
+    let currentPatternIndex;
+    if (this.machine.songMode && this.machine.song.chain.length > 0) {
+      currentPatternIndex = this.machine.song.chain[this.machine.song.currentPosition];
+    } else {
+      currentPatternIndex = this.machine.currentPattern;
+    }
+
+    // Auto-page-switch: Calculate which page the current step is on
+    const pageForCurrentStep = Math.floor(this.machine.currentStep / 16);
+    const storedPage = this.machine.patternPages[currentPatternIndex];
+
+    // If playback has moved to a different page, switch to it
+    if (pageForCurrentStep !== storedPage) {
+      this.machine.patternPages[currentPatternIndex] = pageForCurrentStep;
+      this.renderSequencer();
+      return; // renderSequencer will be called, so skip the rest
+    }
+
     const steps = document.querySelectorAll('.step');
     steps.forEach((step, idx) => {
-      const stepNum = idx % 16;
+      const stepNum = parseInt(step.dataset.step);
       if (stepNum === this.machine.currentStep) {
         step.classList.add('current-step');
       } else {
