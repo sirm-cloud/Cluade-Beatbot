@@ -732,7 +732,8 @@ body {
     <div class="pattern-bank-inline">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
         <div class="pattern-grid" id="patternGrid"></div>
-        <div style="display: flex; gap: 6px;">
+        <div style="display: flex; gap: 6px; align-items: center;">
+          <span style="color: #999; font-size: 10px; text-transform: uppercase; margin-right: 4px;">Pattern:</span>
           <button class="btn" id="copyPattern" style="padding: 6px 10px; font-size: 10px;">Copy</button>
           <button class="btn" id="pastePattern" style="padding: 6px 10px; font-size: 10px;">Paste</button>
           <button class="btn" id="clearPattern" style="padding: 6px 10px; font-size: 10px;">Clear</button>
@@ -741,7 +742,7 @@ body {
     </div>
 
     <div class="pattern-controls">
-      <div style="display: flex; justify-content: space-between; align-items: center;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
         <div style="display: flex; gap: 8px; align-items: center;">
           <span style="color: #999; font-size: 11px; text-transform: uppercase;">Length:</span>
           <button class="length-btn active" id="length16" data-length="16">16</button>
@@ -753,6 +754,12 @@ body {
           <span id="pageIndicator" style="color: #999; font-size: 11px; min-width: 60px; text-align: center;">1-16</span>
           <button class="page-btn" id="nextPage">▶</button>
         </div>
+      </div>
+      <div style="display: flex; justify-content: flex-end; align-items: center; gap: 6px;">
+        <span style="color: #999; font-size: 10px; text-transform: uppercase;">Segment:</span>
+        <button class="btn" id="copySegment" style="padding: 5px 10px; font-size: 10px;">Copy</button>
+        <button class="btn" id="pasteSegment" style="padding: 5px 10px; font-size: 10px;">Paste</button>
+        <button class="btn" id="clearSegment" style="padding: 5px 10px; font-size: 10px;">Clear</button>
       </div>
     </div>
   </div>
@@ -828,7 +835,7 @@ body {
   </div>
 </div>
 
-<div class="version">v2026.013.38</div>
+<div class="version">v2026.013.39</div>
 
 <script>
 // Audio Engine
@@ -871,6 +878,7 @@ class DrumMachine {
     this.patternPages = Array(16).fill(0);
 
     this.clipboard = null;
+    this.segmentClipboard = null; // For copying 16-step segments
 
     // Song mode
     this.songMode = false;
@@ -1615,6 +1623,53 @@ class DrumMachine {
 
     // Reload the pattern to update active channels
     this.loadPattern(patternIndex);
+  }
+
+  copySegment() {
+    // Copy current 16-step segment based on current page
+    const currentPage = this.patternPages[this.currentPattern];
+    const startStep = currentPage * 16;
+    const endStep = startStep + 16;
+
+    this.segmentClipboard = this.channels.map(ch => ({
+      steps: ch.steps.slice(startStep, endStep)
+    }));
+  }
+
+  pasteSegment() {
+    if (!this.segmentClipboard) return;
+
+    // Paste into current 16-step segment based on current page
+    const currentPage = this.patternPages[this.currentPattern];
+    const startStep = currentPage * 16;
+    const patternLength = this.patternLengths[this.currentPattern];
+
+    this.channels.forEach((ch, i) => {
+      if (this.segmentClipboard[i]) {
+        // Paste up to 16 steps or pattern length, whichever comes first
+        const segmentSteps = this.segmentClipboard[i].steps;
+        for (let j = 0; j < segmentSteps.length && (startStep + j) < patternLength; j++) {
+          ch.steps[startStep + j] = segmentSteps[j];
+        }
+      }
+    });
+
+    this.savePattern(this.currentPattern);
+  }
+
+  clearSegment() {
+    // Clear current 16-step segment based on current page
+    const currentPage = this.patternPages[this.currentPattern];
+    const startStep = currentPage * 16;
+    const endStep = Math.min(startStep + 16, this.patternLengths[this.currentPattern]);
+
+    this.channels.forEach(ch => {
+      for (let i = startStep; i < endStep; i++) {
+        ch.steps[i] = null;
+      }
+    });
+
+    this.savePattern(this.currentPattern);
   }
 
   exportMIDI() {
@@ -2982,6 +3037,23 @@ class UI {
       const maxPages = Math.ceil(patternLength / 16);
       if (this.machine.patternPages[patternIndex] < maxPages - 1) {
         this.machine.patternPages[patternIndex]++;
+        this.renderSequencer();
+      }
+    };
+
+    // Segment operations
+    document.getElementById('copySegment').onclick = () => {
+      this.machine.copySegment();
+    };
+
+    document.getElementById('pasteSegment').onclick = () => {
+      this.machine.pasteSegment();
+      this.renderSequencer();
+    };
+
+    document.getElementById('clearSegment').onclick = () => {
+      if (confirm('Clear current segment (16 steps)?')) {
+        this.machine.clearSegment();
         this.renderSequencer();
       }
     };
