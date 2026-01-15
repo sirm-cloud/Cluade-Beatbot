@@ -1,0 +1,20 @@
+{
+  "name": "cluade-beatbot",
+  "version": "1.0.0",
+  "description": "A simple interactive drum machine and beat pattern generator",
+  "main": "beatbot.js",
+  "type": "module",
+  "scripts": {
+    "start": "node beatbot.js",
+    "demo": "node beatbot.js --demo"
+  },
+  "keywords": [
+    "drum",
+    "beat",
+    "music",
+    "pattern",
+    "generator"
+  ],
+  "author": "",
+  "license": "MIT"
+}
