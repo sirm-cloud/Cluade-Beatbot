@@ -1,0 +1,30 @@
+.forex-chart {
+  background: #1a1a1a;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  color: #d1d4dc;
+}
+
+.chart-header h3 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+.data-points {
+  font-size: 12px;
+  opacity: 0.6;
+}
+
+.chart-container {
+  position: relative;
+}

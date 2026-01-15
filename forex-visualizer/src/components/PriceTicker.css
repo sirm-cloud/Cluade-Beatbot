@@ -1,0 +1,70 @@
+.price-ticker {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px;
+  padding: 20px;
+  color: white;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  min-width: 300px;
+}
+
+.ticker-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.ticker-symbol {
+  margin: 0;
+  font-size: 24px;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+.ticker-time {
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+.ticker-prices {
+  display: flex;
+  gap: 15px;
+  justify-content: space-between;
+}
+
+.price-item {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  flex: 1;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  backdrop-filter: blur(10px);
+}
+
+.price-item.bid {
+  border-left: 3px solid #4ade80;
+}
+
+.price-item.ask {
+  border-left: 3px solid #f87171;
+}
+
+.price-item.spread {
+  border-left: 3px solid #fbbf24;
+}
+
+.price-label {
+  font-size: 11px;
+  opacity: 0.8;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 600;
+}
+
+.price-value {
+  font-size: 18px;
+  font-weight: bold;
+  font-family: 'Courier New', monospace;
+}

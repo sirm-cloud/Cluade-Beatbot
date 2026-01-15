@@ -1,0 +1,205 @@
+.app {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+  padding: 20px;
+}
+
+/* Login Screen */
+.login-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 80vh;
+  text-align: center;
+}
+
+.login-container h1 {
+  color: white;
+  font-size: 48px;
+  margin: 0 0 10px 0;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.subtitle {
+  color: #d1d4dc;
+  font-size: 18px;
+  margin: 0 0 40px 0;
+  opacity: 0.8;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  width: 100%;
+  max-width: 400px;
+}
+
+.api-key-input {
+  padding: 15px 20px;
+  border: 2px solid #3a3a3a;
+  border-radius: 8px;
+  background: #1a1a1a;
+  color: white;
+  font-size: 16px;
+  transition: border-color 0.3s;
+}
+
+.api-key-input:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+.connect-btn {
+  padding: 15px 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.connect-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(102, 126, 234, 0.4);
+}
+
+.help-text {
+  color: #d1d4dc;
+  font-size: 14px;
+  opacity: 0.7;
+}
+
+.help-text a {
+  color: #667eea;
+  text-decoration: none;
+}
+
+.help-text a:hover {
+  text-decoration: underline;
+}
+
+/* Dashboard */
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  padding: 20px;
+  background: rgba(26, 26, 26, 0.6);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+}
+
+.app-header h1 {
+  color: white;
+  font-size: 32px;
+  margin: 0 0 10px 0;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.status-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #d1d4dc;
+  font-size: 14px;
+}
+
+.status-indicator {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.status-text {
+  text-transform: capitalize;
+  font-weight: 600;
+}
+
+.error-text {
+  color: #f87171;
+  font-size: 13px;
+}
+
+.disconnect-btn {
+  padding: 10px 20px;
+  background: rgba(248, 113, 113, 0.2);
+  border: 1px solid #f87171;
+  border-radius: 8px;
+  color: #f87171;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.disconnect-btn:hover {
+  background: rgba(248, 113, 113, 0.3);
+}
+
+.app-main {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.loading-message {
+  text-align: center;
+  padding: 40px;
+  color: #d1d4dc;
+  font-size: 18px;
+  opacity: 0.7;
+}
+
+.tickers-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.charts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
+  gap: 20px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .app {
+    padding: 10px;
+  }
+
+  .app-header {
+    flex-direction: column;
+    gap: 15px;
+    text-align: center;
+  }
+
+  .app-header h1 {
+    font-size: 24px;
+  }
+
+  .tickers-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .charts-grid {
+    grid-template-columns: 1fr;
+  }
+}
