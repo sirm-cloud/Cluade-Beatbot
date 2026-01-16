@@ -40,7 +40,8 @@ interface ForexChartProps {
   height?: number;
 }
 
-type Timeframe = 'all' | '1m' | '5m' | '15m' | '1h';
+type LineTimeframe = 'all' | '1m' | '5m' | '15m' | '1h';
+type CandlestickTimeframe = '1s' | '5s' | '10s' | '30s';
 type ChartType = 'line' | 'candlestick';
 
 interface CandleData {
@@ -57,7 +58,8 @@ export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
   const rsiCanvasRef = useRef<HTMLCanvasElement>(null);
   const rsiChartRef = useRef<Chart | null>(null);
   const legendRef = useRef<HTMLDivElement>(null);
-  const [timeframe, setTimeframe] = useState<Timeframe>('1m');
+  const [lineTimeframe, setLineTimeframe] = useState<LineTimeframe>('1m');
+  const [candlestickTimeframe, setCandlestickTimeframe] = useState<CandlestickTimeframe>('5s');
   const [chartType, setChartType] = useState<ChartType>('line');
   const [indicators, setIndicators] = useState({
     sma20: false,
@@ -136,17 +138,30 @@ export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
 
   // Filter data based on selected timeframe (fx1s = 1 second data)
   const getFilteredData = () => {
-    if (timeframe === 'all') return data;
+    if (chartType === 'line') {
+      if (lineTimeframe === 'all') return data;
 
-    const timeframeMap: Record<Exclude<Timeframe, 'all'>, number> = {
-      '1m': 60,    // 60 seconds
-      '5m': 300,   // 5 minutes
-      '15m': 900,  // 15 minutes
-      '1h': 3600,  // 1 hour
-    };
+      const lineTimeframeMap: Record<Exclude<LineTimeframe, 'all'>, number> = {
+        '1m': 60,    // 60 seconds
+        '5m': 300,   // 5 minutes
+        '15m': 900,  // 15 minutes
+        '1h': 3600,  // 1 hour
+      };
 
-    const limit = timeframeMap[timeframe];
-    return data.slice(-limit);
+      const limit = lineTimeframeMap[lineTimeframe];
+      return data.slice(-limit);
+    } else {
+      // Candlestick chart - show 60 candles worth of data
+      const candleTimeframeMap: Record<CandlestickTimeframe, number> = {
+        '1s': 60,     // 60 seconds (60 candles of 1s)
+        '5s': 300,    // 5 minutes (60 candles of 5s)
+        '10s': 600,   // 10 minutes (60 candles of 10s)
+        '30s': 1800,  // 30 minutes (60 candles of 30s)
+      };
+
+      const limit = candleTimeframeMap[candlestickTimeframe];
+      return data.slice(-limit);
+    }
   };
 
   const filteredData = getFilteredData();
@@ -155,16 +170,15 @@ export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
   const aggregateToCandles = (rawData: PriceHistory[]): CandleData[] => {
     if (rawData.length === 0) return [];
 
-    // Determine candle interval in seconds based on timeframe
-    const candleIntervalMap: Record<Timeframe, number> = {
-      '1m': 3,     // 3-second candles
-      '5m': 10,    // 10-second candles
-      '15m': 30,   // 30-second candles
-      '1h': 60,    // 60-second candles
-      'all': 5,    // 5-second candles for all data view
+    // Each candle represents exactly the selected timeframe
+    const candleIntervalMap: Record<CandlestickTimeframe, number> = {
+      '1s': 1,     // 1-second candles
+      '5s': 5,     // 5-second candles
+      '10s': 10,   // 10-second candles
+      '30s': 30,   // 30-second candles
     };
 
-    const intervalSeconds = candleIntervalMap[timeframe];
+    const intervalSeconds = candleIntervalMap[candlestickTimeframe];
 
     // Group data by time buckets
     const buckets = new Map<number, PriceHistory[]>();
@@ -199,11 +213,11 @@ export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
     return candles;
   };
 
-  // Format labels based on timeframe
+  // Format labels based on timeframe (for line chart)
   const formatLabel = (timestamp: number, index: number, totalPoints: number) => {
     const date = new Date(timestamp * 1000);
 
-    switch (timeframe) {
+    switch (lineTimeframe) {
       case '1m':
         // For 1 minute: show every 10 seconds (MM:SS format)
         if (index % 10 === 0 || index === totalPoints - 1) {
@@ -568,7 +582,7 @@ export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
             x: {
               type: 'time' as const,
               time: {
-                unit: timeframe === '1m' ? 'second' : 'minute',
+                unit: 'second',
               },
               ticks: {
                 color: '#d1d4dc',
@@ -606,7 +620,7 @@ export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
         chartRef.current.destroy();
       }
     };
-  }, [filteredData, symbol, timeframe, chartType, indicators]);
+  }, [filteredData, symbol, lineTimeframe, candlestickTimeframe, chartType, indicators]);
 
   // RSI Chart Effect
   useEffect(() => {
@@ -686,7 +700,7 @@ export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
           x: chartType === 'candlestick' ? {
             type: 'time' as const,
             time: {
-              unit: timeframe === '1m' ? 'second' : 'minute',
+              unit: 'second',
             },
             ticks: {
               color: '#d1d4dc',
@@ -735,7 +749,7 @@ export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
         rsiChartRef.current.destroy();
       }
     };
-  }, [filteredData, indicators.rsi, chartType, timeframe]);
+  }, [filteredData, indicators.rsi, chartType, lineTimeframe, candlestickTimeframe]);
 
   if (!data || data.length === 0) {
     return (
@@ -763,17 +777,30 @@ export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
             <option value="line">Line</option>
             <option value="candlestick">Candlestick</option>
           </select>
-          <select
-            value={timeframe}
-            onChange={(e) => setTimeframe(e.target.value as Timeframe)}
-            className="timeframe-selector"
-          >
-            <option value="1m">1 minute</option>
-            <option value="5m">5 minutes</option>
-            <option value="15m">15 minutes</option>
-            <option value="1h">1 hour</option>
-            <option value="all">All data</option>
-          </select>
+          {chartType === 'line' ? (
+            <select
+              value={lineTimeframe}
+              onChange={(e) => setLineTimeframe(e.target.value as LineTimeframe)}
+              className="timeframe-selector"
+            >
+              <option value="1m">1 minute</option>
+              <option value="5m">5 minutes</option>
+              <option value="15m">15 minutes</option>
+              <option value="1h">1 hour</option>
+              <option value="all">All data</option>
+            </select>
+          ) : (
+            <select
+              value={candlestickTimeframe}
+              onChange={(e) => setCandlestickTimeframe(e.target.value as CandlestickTimeframe)}
+              className="timeframe-selector"
+            >
+              <option value="1s">1 second</option>
+              <option value="5s">5 seconds</option>
+              <option value="10s">10 seconds</option>
+              <option value="30s">30 seconds</option>
+            </select>
+          )}
           <div className="indicator-controls">
             <label className="indicator-checkbox">
               <input
