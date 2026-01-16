@@ -119,7 +119,8 @@ function App() {
           </div>
         )}
 
-        {priceHistory && (
+        {/* Charts temporarily disabled - see README for manual installation */}
+        {false && priceHistory && (
           <div className="charts-grid">
             {selectedPairs.map((pair) => {
               const history = priceHistory.get(pair) || [];
