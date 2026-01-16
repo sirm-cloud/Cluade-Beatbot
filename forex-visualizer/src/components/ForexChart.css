@@ -20,9 +20,38 @@
   letter-spacing: 1px;
 }
 
+.chart-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.timeframe-selector {
+  padding: 6px 12px;
+  background: #2a2a2a;
+  color: #d1d4dc;
+  border: 1px solid #3a3a3a;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.timeframe-selector:hover {
+  background: #3a3a3a;
+  border-color: #667eea;
+}
+
+.timeframe-selector:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+}
+
 .data-points {
   font-size: 12px;
   opacity: 0.6;
+  white-space: nowrap;
 }
 
 .chart-container {

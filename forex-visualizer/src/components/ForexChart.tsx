@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   Chart,
   LineController,
@@ -33,9 +33,21 @@ interface ForexChartProps {
   height?: number;
 }
 
+type Timeframe = 'all' | '50' | '100' | '150' | '200';
+
 export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const chartRef = useRef<Chart | null>(null);
+  const [timeframe, setTimeframe] = useState<Timeframe>('all');
+
+  // Filter data based on selected timeframe
+  const getFilteredData = () => {
+    if (timeframe === 'all') return data;
+    const limit = parseInt(timeframe);
+    return data.slice(-limit);
+  };
+
+  const filteredData = getFilteredData();
 
   useEffect(() => {
     if (!canvasRef.current) return;
@@ -49,7 +61,7 @@ export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
     }
 
     // Prepare chart data
-    const labels = data.map((item) => {
+    const labels = filteredData.map((item) => {
       const date = new Date(item.time * 1000);
       return date.toLocaleTimeString();
     });
@@ -61,7 +73,7 @@ export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
         datasets: [
           {
             label: 'Bid',
-            data: data.map((item) => item.bid),
+            data: filteredData.map((item) => item.bid),
             borderColor: 'rgb(74, 222, 128)',
             backgroundColor: 'rgba(74, 222, 128, 0.1)',
             borderWidth: 2,
@@ -72,7 +84,7 @@ export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
           },
           {
             label: 'Ask',
-            data: data.map((item) => item.ask),
+            data: filteredData.map((item) => item.ask),
             borderColor: 'rgb(248, 113, 113)',
             backgroundColor: 'rgba(248, 113, 113, 0.1)',
             borderWidth: 2,
@@ -144,7 +156,7 @@ export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
         chartRef.current.destroy();
       }
     };
-  }, [data, symbol]);
+  }, [filteredData, symbol]);
 
   if (!data || data.length === 0) {
     return (
@@ -163,7 +175,22 @@ export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
     <div className="forex-chart">
       <div className="chart-header">
         <h3>{symbol}</h3>
-        <span className="data-points">{data.length} data points</span>
+        <div className="chart-controls">
+          <select
+            value={timeframe}
+            onChange={(e) => setTimeframe(e.target.value as Timeframe)}
+            className="timeframe-selector"
+          >
+            <option value="50">Last 50 points</option>
+            <option value="100">Last 100 points</option>
+            <option value="150">Last 150 points</option>
+            <option value="200">Last 200 points</option>
+            <option value="all">All data</option>
+          </select>
+          <span className="data-points">
+            {filteredData.length} / {data.length} points
+          </span>
+        </div>
       </div>
       <div className="chart-container" style={{ height: `${height}px` }}>
         <canvas ref={canvasRef}></canvas>

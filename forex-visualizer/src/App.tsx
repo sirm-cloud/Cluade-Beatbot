@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { usePrimeAPI } from './hooks/usePrimeAPI';
 import { PriceTicker } from './components/PriceTicker';
 import { ForexChart } from './components/ForexChart';
@@ -12,11 +12,33 @@ const AVAILABLE_PAIRS = [
   'GBPAUD', 'EURAUD', 'EURCAD', 'GBPCAD', 'GBPNZD', 'EURNZD'
 ];
 
+// LocalStorage keys
+const STORAGE_KEYS = {
+  SELECTED_PAIRS: 'forex-visualizer-selected-pairs',
+  API_KEY: 'forex-visualizer-api-key',
+};
+
 function App() {
   const [apiKey, setApiKey] = useState<string>('');
   const [inputApiKey, setInputApiKey] = useState<string>('');
-  const [selectedPairs, setSelectedPairs] = useState<string[]>(['EURUSD', 'GBPUSD']);
+  const [selectedPairs, setSelectedPairs] = useState<string[]>(() => {
+    const saved = localStorage.getItem(STORAGE_KEYS.SELECTED_PAIRS);
+    return saved ? JSON.parse(saved) : ['EURUSD', 'GBPUSD'];
+  });
   const [isConnected, setIsConnected] = useState(false);
+
+  // Load saved API key on mount
+  useEffect(() => {
+    const savedApiKey = localStorage.getItem(STORAGE_KEYS.API_KEY);
+    if (savedApiKey) {
+      setInputApiKey(savedApiKey);
+    }
+  }, []);
+
+  // Save selected pairs to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.SELECTED_PAIRS, JSON.stringify(selectedPairs));
+  }, [selectedPairs]);
 
   const { status, prices, priceHistory, error } = usePrimeAPI({
     apiKey: apiKey,
@@ -25,14 +47,19 @@ function App() {
     maxHistoryLength: 200, // Keep 200 data points
   });
 
-  // Debug logging
-  console.log('App render:', { status, pricesCount: prices?.length, error, isConnected });
-
   const handleConnect = () => {
     if (inputApiKey.trim()) {
       setApiKey(inputApiKey);
       setIsConnected(true);
+      // Save API key to localStorage for convenience
+      localStorage.setItem(STORAGE_KEYS.API_KEY, inputApiKey);
     }
+  };
+
+  const handleDisconnect = () => {
+    setIsConnected(false);
+    setApiKey('');
+    // Keep API key in localStorage for convenience
   };
 
   const getStatusColor = () => {
@@ -87,10 +114,7 @@ function App() {
           </div>
         </div>
         <button
-          onClick={() => {
-            setIsConnected(false);
-            setApiKey('');
-          }}
+          onClick={handleDisconnect}
           className="disconnect-btn"
         >
           Disconnect

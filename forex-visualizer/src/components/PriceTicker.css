@@ -12,6 +12,7 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 15px;
+  gap: 10px;
 }
 
 .ticker-symbol {
@@ -19,6 +20,26 @@
   font-size: 24px;
   font-weight: bold;
   letter-spacing: 1px;
+}
+
+.ticker-change {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: bold;
+  font-size: 14px;
+  padding: 4px 8px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 6px;
+}
+
+.change-arrow {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.change-percentage {
+  font-family: 'Courier New', monospace;
 }
 
 .ticker-time {
