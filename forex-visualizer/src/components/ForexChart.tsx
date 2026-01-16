@@ -384,35 +384,7 @@ export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
               display: false, // Use custom HTML legend instead
             },
             tooltip: {
-              backgroundColor: 'rgba(0, 0, 0, 0.9)',
-              titleColor: '#fff',
-              bodyColor: '#fff',
-              borderColor: '#667eea',
-              borderWidth: 1,
-              callbacks: {
-                label: function (context: any) {
-                  const dataset = context.dataset;
-                  const value = context.parsed.y;
-                  let label = dataset.label || '';
-
-                  if (value !== null) {
-                    label += `: ${value.toFixed(5)}`;
-                  }
-
-                  return label;
-                },
-                afterLabel: function (context: any) {
-                  const dataset = context.dataset;
-                  if (dataset.indicatorInfo) {
-                    return [
-                      '',
-                      dataset.indicatorInfo.fullName,
-                      dataset.indicatorInfo.description,
-                    ];
-                  }
-                  return [];
-                },
-              },
+              enabled: false, // Tooltips disabled - use legend tooltips instead
             },
           },
           scales: {
@@ -582,46 +554,7 @@ export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
               display: false, // Use custom HTML legend instead
             },
             tooltip: {
-              backgroundColor: 'rgba(0, 0, 0, 0.9)',
-              titleColor: '#fff',
-              bodyColor: '#fff',
-              borderColor: '#667eea',
-              borderWidth: 1,
-              callbacks: {
-                label: function (context: any) {
-                  const dataset = context.dataset;
-                  const point = context.raw;
-
-                  // For candlestick data
-                  if (point && point.o !== undefined) {
-                    return [
-                      `Open: ${point.o.toFixed(5)}`,
-                      `High: ${point.h.toFixed(5)}`,
-                      `Low: ${point.l.toFixed(5)}`,
-                      `Close: ${point.c.toFixed(5)}`,
-                    ];
-                  }
-
-                  // For indicator lines
-                  const value = context.parsed.y;
-                  let label = dataset.label || '';
-                  if (value !== null) {
-                    label += `: ${value.toFixed(5)}`;
-                  }
-                  return label;
-                },
-                afterLabel: function (context: any) {
-                  const dataset = context.dataset;
-                  if (dataset.indicatorInfo) {
-                    return [
-                      '',
-                      dataset.indicatorInfo.fullName,
-                      dataset.indicatorInfo.description,
-                    ];
-                  }
-                  return [];
-                },
-              },
+              enabled: false, // Tooltips disabled - use legend tooltips instead
             },
           },
           scales: {
@@ -739,35 +672,7 @@ export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
             display: false, // Use custom HTML legend
           },
           tooltip: {
-            backgroundColor: 'rgba(0, 0, 0, 0.9)',
-            titleColor: '#fff',
-            bodyColor: '#fff',
-            borderColor: '#667eea',
-            borderWidth: 1,
-            callbacks: {
-              label: function (context: any) {
-                const dataset = context.dataset;
-                const value = context.parsed.y;
-                let label = dataset.label || '';
-
-                if (value !== null) {
-                  label += `: ${value.toFixed(2)}`;
-                }
-
-                return label;
-              },
-              afterLabel: function (context: any) {
-                const dataset = context.dataset;
-                if (dataset.indicatorInfo) {
-                  return [
-                    '',
-                    dataset.indicatorInfo.fullName,
-                    dataset.indicatorInfo.description,
-                  ];
-                }
-                return [];
-              },
-            },
+            enabled: false, // Tooltips disabled - use legend tooltips instead
           },
         },
         scales: {
@@ -900,7 +805,7 @@ export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
       </div>
       <div className="custom-legend" ref={legendRef}>
         {getLegendItems().map((item, index) => (
-          <div key={index} className="legend-item" title={`${item.tooltip}\n${item.description}`}>
+          <div key={index} className="legend-item">
             <span
               className="legend-color"
               style={{ backgroundColor: item.color }}
@@ -919,7 +824,7 @@ export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
       {indicators.rsi && (
         <div className="rsi-container" style={{ marginTop: '10px' }}>
           <div className="custom-legend">
-            <div className="legend-item" title="Relative Strength Index (14)\nMomentum indicator (0-100). >70 = overbought, <30 = oversold.">
+            <div className="legend-item">
               <span
                 className="legend-color"
                 style={{ backgroundColor: 'rgb(168, 85, 247)' }}
