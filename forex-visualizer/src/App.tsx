@@ -25,6 +25,9 @@ function App() {
     maxHistoryLength: 200, // Keep 200 data points
   });
 
+  // Debug logging
+  console.log('App render:', { status, pricesCount: prices?.length, error, isConnected });
+
   const handleConnect = () => {
     if (inputApiKey.trim()) {
       setApiKey(inputApiKey);
@@ -84,7 +87,10 @@ function App() {
           </div>
         </div>
         <button
-          onClick={() => setIsConnected(false)}
+          onClick={() => {
+            setIsConnected(false);
+            setApiKey('');
+          }}
           className="disconnect-btn"
         >
           Disconnect
@@ -99,33 +105,37 @@ function App() {
           maxPairs={5}
         />
 
-        {prices.length === 0 && status === 'authenticated' && (
+        {prices && prices.length === 0 && status === 'authenticated' && (
           <div className="loading-message">
             <p>Waiting for price data...</p>
           </div>
         )}
 
-        <div className="tickers-grid">
-          {prices.map((price) => (
-            <PriceTicker key={price.symbol} price={price} />
-          ))}
-        </div>
+        {prices && prices.length > 0 && (
+          <div className="tickers-grid">
+            {prices.map((price) => (
+              <PriceTicker key={price.symbol} price={price} />
+            ))}
+          </div>
+        )}
 
-        <div className="charts-grid">
-          {selectedPairs.map((pair) => {
-            const history = priceHistory.get(pair) || [];
-            if (history.length === 0) return null;
+        {priceHistory && (
+          <div className="charts-grid">
+            {selectedPairs.map((pair) => {
+              const history = priceHistory.get(pair) || [];
+              if (history.length === 0) return null;
 
-            return (
-              <ForexChart
-                key={pair}
-                symbol={pair}
-                data={history}
-                height={350}
-              />
-            );
-          })}
-        </div>
+              return (
+                <ForexChart
+                  key={pair}
+                  symbol={pair}
+                  data={history}
+                  height={350}
+                />
+              );
+            })}
+          </div>
+        )}
       </main>
     </div>
   );
