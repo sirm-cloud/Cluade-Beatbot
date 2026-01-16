@@ -9,7 +9,6 @@ import {
   Tooltip,
   Legend,
   Filler,
-  ChartConfiguration,
 } from 'chart.js';
 import type { PriceHistory } from '../types/primeapi';
 import './ForexChart.css';
@@ -53,8 +52,8 @@ export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
       return date.toLocaleTimeString();
     });
 
-    const config: ChartConfiguration<'line'> = {
-      type: 'line',
+    const config = {
+      type: 'line' as const,
       data: {
         labels,
         datasets: [
