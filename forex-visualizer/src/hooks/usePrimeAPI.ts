@@ -25,28 +25,7 @@ export function usePrimeAPI(options: UsePrimeAPIOptions) {
       return;
     }
 
-    // Clean up data for pairs that were removed
-    setPrices((prev) => {
-      const updated = new Map(prev);
-      Array.from(updated.keys()).forEach((symbol) => {
-        if (!options.pairs.includes(symbol)) {
-          updated.delete(symbol);
-        }
-      });
-      return updated;
-    });
-
-    setPriceHistory((prev) => {
-      const updated = new Map(prev);
-      Array.from(updated.keys()).forEach((symbol) => {
-        if (!options.pairs.includes(symbol)) {
-          updated.delete(symbol);
-        }
-      });
-      return updated;
-    });
-
-    // Create service instance
+    // Create service instance only once
     const service = new PrimeAPIService({
       apiKey: options.apiKey,
       pairs: options.pairs,
@@ -64,11 +43,6 @@ export function usePrimeAPI(options: UsePrimeAPIOptions) {
     });
 
     service.setOnPrice((price) => {
-      // Only update if this pair is still in the selected pairs
-      if (!options.pairs.includes(price.symbol)) {
-        return;
-      }
-
       // Update current prices
       setPrices((prev) => {
         const updated = new Map(prev);
@@ -106,11 +80,40 @@ export function usePrimeAPI(options: UsePrimeAPIOptions) {
     // Connect
     service.connect();
 
-    // Cleanup on unmount
+    // Cleanup on unmount or API key change only
     return () => {
       service.disconnect();
     };
-  }, [options.apiKey, options.pairs.join(','), options.stream, maxHistoryLength]);
+  }, [options.apiKey, options.stream, maxHistoryLength]);
+
+  // Separate effect for pairs changes - just clean up old data and update subscription
+  useEffect(() => {
+    // Clean up data for pairs that were removed
+    setPrices((prev) => {
+      const updated = new Map(prev);
+      Array.from(updated.keys()).forEach((symbol) => {
+        if (!options.pairs.includes(symbol)) {
+          updated.delete(symbol);
+        }
+      });
+      return updated;
+    });
+
+    setPriceHistory((prev) => {
+      const updated = new Map(prev);
+      Array.from(updated.keys()).forEach((symbol) => {
+        if (!options.pairs.includes(symbol)) {
+          updated.delete(symbol);
+        }
+      });
+      return updated;
+    });
+
+    // Update subscription if service exists and is connected
+    if (serviceRef.current) {
+      serviceRef.current.updatePairs(options.pairs);
+    }
+  }, [options.pairs.join(',')]);
 
   const updatePairs = useCallback((newPairs: string[]) => {
     serviceRef.current?.updatePairs(newPairs);
