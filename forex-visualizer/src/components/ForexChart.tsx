@@ -74,12 +74,14 @@ export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
         color: 'rgb(74, 222, 128)',
         tooltip: 'Bid Price',
         description: 'The highest price a buyer is willing to pay for the currency pair.',
+        dashed: false,
       },
       {
         label: 'Ask',
         color: 'rgb(248, 113, 113)',
         tooltip: 'Ask Price',
         description: 'The lowest price a seller is willing to accept for the currency pair.',
+        dashed: false,
       },
     ];
 
@@ -89,6 +91,7 @@ export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
         color: 'rgb(251, 191, 36)',
         tooltip: 'Simple Moving Average (20)',
         description: 'Average of the last 20 prices. Shows short-term trend direction.',
+        dashed: false,
       });
     }
 
@@ -98,6 +101,7 @@ export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
         color: 'rgb(139, 92, 246)',
         tooltip: 'Simple Moving Average (50)',
         description: 'Average of the last 50 prices. Shows medium-term trend direction.',
+        dashed: false,
       });
     }
 
@@ -105,21 +109,24 @@ export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
       items.push(
         {
           label: 'BB Upper',
-          color: 'rgba(59, 130, 246, 0.5)',
+          color: 'rgb(59, 130, 246)',
           tooltip: 'Bollinger Band Upper',
           description: 'Upper band (+2 std dev). Price touching this may indicate overbought conditions.',
+          dashed: true,
         },
         {
           label: 'BB Middle',
-          color: 'rgba(59, 130, 246, 0.3)',
+          color: 'rgb(59, 130, 246)',
           tooltip: 'Bollinger Band Middle',
           description: '20-period SMA. The baseline for Bollinger Bands.',
+          dashed: false,
         },
         {
           label: 'BB Lower',
-          color: 'rgba(59, 130, 246, 0.5)',
+          color: 'rgb(59, 130, 246)',
           tooltip: 'Bollinger Band Lower',
           description: 'Lower band (-2 std dev). Price touching this may indicate oversold conditions.',
+          dashed: true,
         }
       );
     }
@@ -807,8 +814,11 @@ export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
         {getLegendItems().map((item, index) => (
           <div key={index} className="legend-item">
             <span
-              className="legend-color"
-              style={{ backgroundColor: item.color }}
+              className={`legend-color ${item.dashed ? 'dashed' : ''}`}
+              style={{
+                backgroundColor: !item.dashed ? item.color : 'transparent',
+                borderTop: item.dashed ? `3px dashed ${item.color}` : 'none'
+              }}
             ></span>
             <span className="legend-label">{item.label}</span>
             <div className="legend-tooltip">
