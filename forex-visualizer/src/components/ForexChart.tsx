@@ -1,8 +1,30 @@
-import { useEffect, useRef, useState } from 'react';
-import { createChart } from 'lightweight-charts';
-import type { IChartApi } from 'lightweight-charts';
+import { useEffect, useRef } from 'react';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler,
+} from 'chart.js';
+import { Line } from 'react-chartjs-2';
 import type { PriceHistory } from '../types/primeapi';
 import './ForexChart.css';
+
+// Register Chart.js components
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler
+);
 
 interface ForexChartProps {
   symbol: string;
@@ -11,106 +33,114 @@ interface ForexChartProps {
 }
 
 export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
-  const chartContainerRef = useRef<HTMLDivElement>(null);
-  const chartRef = useRef<IChartApi | null>(null);
-  const seriesRef = useRef<any>(null);
-  const [error, setError] = useState<string | null>(null);
+  const chartRef = useRef<ChartJS<'line'>>(null);
 
+  // Update chart when data changes
   useEffect(() => {
-    if (!chartContainerRef.current) return;
-
-    try {
-      // Create chart
-      const chart = createChart(chartContainerRef.current, {
-        width: chartContainerRef.current.clientWidth,
-        height,
-        layout: {
-          background: { color: '#1a1a1a' },
-          textColor: '#d1d4dc',
-        },
-        grid: {
-          vertLines: { color: '#2a2a2a' },
-          horzLines: { color: '#2a2a2a' },
-        },
-        rightPriceScale: {
-          borderColor: '#3a3a3a',
-        },
-        timeScale: {
-          borderColor: '#3a3a3a',
-          timeVisible: true,
-          secondsVisible: false,
-        },
-      });
-
-      chartRef.current = chart;
-
-      // v5 API: Try minimal line series first
-      const series = (chart as any).addSeries({
-        type: 'Line',
-      });
-
-      // Apply styling after creation
-      series.applyOptions({
-        color: '#4ade80',
-        lineWidth: 2,
-      });
-
-      console.log('Successfully created Line series!');
-      seriesRef.current = series;
-
-      // Handle resize
-      const handleResize = () => {
-        if (chartContainerRef.current && chartRef.current) {
-          chartRef.current.applyOptions({
-            width: chartContainerRef.current.clientWidth,
-          });
-        }
-      };
-
-      window.addEventListener('resize', handleResize);
-
-      return () => {
-        window.removeEventListener('resize', handleResize);
-        chart.remove();
-      };
-    } catch (err) {
-      console.error('Error creating chart:', err);
-      setError(err instanceof Error ? err.message : 'Failed to create chart');
-    }
-  }, [height]);
-
-  useEffect(() => {
-    if (!seriesRef.current || !data || data.length === 0) return;
-
-    try {
-      // Use mid price (average of bid and ask)
-      const chartData = data.map((item) => ({
-        time: item.time,
-        value: item.mid,
-      }));
-
-      seriesRef.current.setData(chartData);
-
-      // Auto-scale to fit data
-      chartRef.current?.timeScale().fitContent();
-    } catch (err) {
-      console.error('Error setting chart data:', err);
-      setError(err instanceof Error ? err.message : 'Failed to update chart');
+    if (chartRef.current) {
+      chartRef.current.update('none'); // Update without animation for smooth real-time updates
     }
   }, [data]);
 
-  if (error) {
+  if (!data || data.length === 0) {
     return (
       <div className="forex-chart">
         <div className="chart-header">
           <h3>{symbol}</h3>
-          <span className="error-text" style={{ color: '#f87171', fontSize: '12px' }}>
-            Chart unavailable (see price tickers above)
+          <span className="data-points" style={{ opacity: 0.6 }}>
+            Waiting for data...
           </span>
         </div>
       </div>
     );
   }
+
+  // Prepare chart data
+  const labels = data.map((item) => {
+    const date = new Date(item.time * 1000);
+    return date.toLocaleTimeString();
+  });
+
+  const chartData = {
+    labels,
+    datasets: [
+      {
+        label: 'Bid',
+        data: data.map((item) => item.bid),
+        borderColor: 'rgb(74, 222, 128)',
+        backgroundColor: 'rgba(74, 222, 128, 0.1)',
+        borderWidth: 2,
+        tension: 0.4,
+        fill: true,
+        pointRadius: 0, // Hide points for cleaner look
+        pointHoverRadius: 4,
+      },
+      {
+        label: 'Ask',
+        data: data.map((item) => item.ask),
+        borderColor: 'rgb(248, 113, 113)',
+        backgroundColor: 'rgba(248, 113, 113, 0.1)',
+        borderWidth: 2,
+        tension: 0.4,
+        fill: true,
+        pointRadius: 0,
+        pointHoverRadius: 4,
+      },
+    ],
+  };
+
+  const options = {
+    responsive: true,
+    maintainAspectRatio: false,
+    interaction: {
+      mode: 'index' as const,
+      intersect: false,
+    },
+    plugins: {
+      legend: {
+        position: 'top' as const,
+        labels: {
+          color: '#d1d4dc',
+          font: {
+            size: 12,
+          },
+        },
+      },
+      title: {
+        display: false,
+      },
+      tooltip: {
+        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        titleColor: '#fff',
+        bodyColor: '#fff',
+        borderColor: '#667eea',
+        borderWidth: 1,
+      },
+    },
+    scales: {
+      x: {
+        ticks: {
+          color: '#d1d4dc',
+          maxRotation: 0,
+          autoSkipPadding: 20,
+        },
+        grid: {
+          color: 'rgba(255, 255, 255, 0.1)',
+        },
+      },
+      y: {
+        ticks: {
+          color: '#d1d4dc',
+          callback: function (value: any) {
+            return value.toFixed(5);
+          },
+        },
+        grid: {
+          color: 'rgba(255, 255, 255, 0.1)',
+        },
+      },
+    },
+  };
 
   return (
     <div className="forex-chart">
@@ -118,7 +148,9 @@ export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
         <h3>{symbol}</h3>
         <span className="data-points">{data.length} data points</span>
       </div>
-      <div ref={chartContainerRef} className="chart-container" />
+      <div className="chart-container" style={{ height: `${height}px` }}>
+        <Line ref={chartRef} data={chartData} options={options} />
+      </div>
     </div>
   );
 }
