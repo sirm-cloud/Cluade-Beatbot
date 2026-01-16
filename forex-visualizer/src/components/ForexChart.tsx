@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import {
   Chart,
+  LineController,
   CategoryScale,
   LinearScale,
   PointElement,
@@ -15,6 +16,7 @@ import './ForexChart.css';
 
 // Register Chart.js components
 Chart.register(
+  LineController,
   CategoryScale,
   LinearScale,
   PointElement,
