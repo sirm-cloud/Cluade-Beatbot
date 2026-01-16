@@ -44,19 +44,40 @@ export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
 
       chartRef.current = chart;
 
-      // Try to create a series - use area series which is more widely supported
+      // Log available methods to debug the API
+      console.log('Chart object type:', typeof chart);
+      console.log('Available chart methods:', Object.getOwnPropertyNames(Object.getPrototypeOf(chart)));
+
+      // Try different API approaches for lightweight-charts v5
       let series;
+
+      // v5 API: chart.addSeries(type, options)
       try {
-        series = (chart as any).addAreaSeries({
+        series = (chart as any).addSeries('Area', {
           topColor: 'rgba(74, 222, 128, 0.4)',
           bottomColor: 'rgba(74, 222, 128, 0.0)',
           lineColor: '#4ade80',
           lineWidth: 2,
         });
-      } catch (e) {
-        console.error('addAreaSeries failed, trying alternative', e);
-        // Fallback: try any available method
-        series = (chart as any).addSeries?.({ type: 'Area' });
+        console.log('Successfully created series with addSeries("Area")');
+      } catch (e1) {
+        console.error('addSeries with Area failed:', e1);
+
+        // Try Line series as fallback
+        try {
+          series = (chart as any).addSeries('Line', {
+            color: '#4ade80',
+            lineWidth: 2,
+          });
+          console.log('Successfully created series with addSeries("Line")');
+        } catch (e2) {
+          console.error('addSeries with Line failed:', e2);
+          throw new Error('Unable to create chart series - API mismatch');
+        }
+      }
+
+      if (!series) {
+        throw new Error('Failed to create chart series');
       }
 
       seriesRef.current = series;
