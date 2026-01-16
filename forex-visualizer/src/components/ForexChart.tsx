@@ -41,7 +41,7 @@ interface ForexChartProps {
 }
 
 type LineTimeframe = 'all' | '1m' | '5m' | '15m' | '1h';
-type CandlestickTimeframe = '1s' | '5s' | '10s' | '30s';
+type CandlestickTimeframe = '5s' | '10s' | '30s';
 type ChartType = 'line' | 'candlestick';
 
 interface CandleData {
@@ -153,7 +153,6 @@ export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
     } else {
       // Candlestick chart - show 60 candles worth of data
       const candleTimeframeMap: Record<CandlestickTimeframe, number> = {
-        '1s': 60,     // 60 seconds (60 candles of 1s)
         '5s': 300,    // 5 minutes (60 candles of 5s)
         '10s': 600,   // 10 minutes (60 candles of 10s)
         '30s': 1800,  // 30 minutes (60 candles of 30s)
@@ -172,7 +171,6 @@ export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
 
     // Each candle represents exactly the selected timeframe
     const candleIntervalMap: Record<CandlestickTimeframe, number> = {
-      '1s': 1,     // 1-second candles
       '5s': 5,     // 5-second candles
       '10s': 10,   // 10-second candles
       '30s': 30,   // 30-second candles
@@ -795,7 +793,6 @@ export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
               onChange={(e) => setCandlestickTimeframe(e.target.value as CandlestickTimeframe)}
               className="timeframe-selector"
             >
-              <option value="1s">1 second</option>
               <option value="5s">5 seconds</option>
               <option value="10s">10 seconds</option>
               <option value="30s">30 seconds</option>

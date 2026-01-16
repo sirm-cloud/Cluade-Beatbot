@@ -5,11 +5,10 @@ import { ForexChart } from './components/ForexChart';
 import { PairSelector } from './components/PairSelector';
 import './App.css';
 
-// Popular forex pairs
+// Available forex pairs
 const AVAILABLE_PAIRS = [
-  'EURUSD', 'GBPUSD', 'USDJPY', 'USDCHF', 'AUDUSD', 'USDCAD',
-  'NZDUSD', 'EURGBP', 'EURJPY', 'GBPJPY', 'EURCHF', 'AUDJPY',
-  'GBPAUD', 'EURAUD', 'EURCAD', 'GBPCAD', 'GBPNZD', 'EURNZD'
+  'EURUSD', 'GBPUSD', 'USDJPY', 'AUDUSD', 'USDCAD',
+  'USDCNY', 'USDCHF', 'USDHKD', 'EURGBP', 'USDKRW'
 ];
 
 // LocalStorage keys
