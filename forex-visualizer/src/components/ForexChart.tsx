@@ -82,41 +82,50 @@ export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
 
   const filteredData = getFilteredData();
 
-  // Aggregate data into candles for candlestick chart
+  // Aggregate data into candles for candlestick chart using time-based intervals
   const aggregateToCandles = (rawData: PriceHistory[]): CandleData[] => {
     if (rawData.length === 0) return [];
 
-    // Determine candle interval based on timeframe
+    // Determine candle interval in seconds based on timeframe
     const candleIntervalMap: Record<Timeframe, number> = {
       '1m': 3,     // 3-second candles
       '5m': 10,    // 10-second candles
       '15m': 30,   // 30-second candles
       '1h': 60,    // 60-second candles
-      'all': Math.max(5, Math.floor(rawData.length / 100)), // Adaptive
+      'all': 5,    // 5-second candles for all data view
     };
 
-    const interval = candleIntervalMap[timeframe];
+    const intervalSeconds = candleIntervalMap[timeframe];
+
+    // Group data by time buckets
+    const buckets = new Map<number, PriceHistory[]>();
+
+    rawData.forEach(item => {
+      // Calculate the bucket start time (floor to nearest interval)
+      const bucketTime = Math.floor(item.time / intervalSeconds) * intervalSeconds;
+
+      if (!buckets.has(bucketTime)) {
+        buckets.set(bucketTime, []);
+      }
+      buckets.get(bucketTime)!.push(item);
+    });
+
+    // Convert buckets to candles
     const candles: CandleData[] = [];
+    const sortedBucketTimes = Array.from(buckets.keys()).sort((a, b) => a - b);
 
-    for (let i = 0; i < rawData.length; i += interval) {
-      const chunk = rawData.slice(i, Math.min(i + interval, rawData.length));
-      if (chunk.length === 0) continue;
-
-      // Use mid price for OHLC
-      const midPrices = chunk.map(item => (item.bid + item.ask) / 2);
-      const open = midPrices[0];
-      const close = midPrices[midPrices.length - 1];
-      const high = Math.max(...midPrices);
-      const low = Math.min(...midPrices);
+    sortedBucketTimes.forEach(bucketTime => {
+      const bucket = buckets.get(bucketTime)!;
+      const midPrices = bucket.map(item => (item.bid + item.ask) / 2);
 
       candles.push({
-        x: chunk[0].time * 1000, // Convert to milliseconds
-        o: open,
-        h: high,
-        l: low,
-        c: close,
+        x: bucketTime * 1000, // Convert to milliseconds
+        o: midPrices[0],
+        h: Math.max(...midPrices),
+        l: Math.min(...midPrices),
+        c: midPrices[midPrices.length - 1],
       });
-    }
+    });
 
     return candles;
   };
