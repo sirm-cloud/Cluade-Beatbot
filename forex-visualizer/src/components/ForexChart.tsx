@@ -86,6 +86,7 @@ export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        animation: false, // Disable animations for smooth real-time updates
         interaction: {
           mode: 'index',
           intersect: false,
