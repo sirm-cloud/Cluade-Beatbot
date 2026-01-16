@@ -17,7 +17,13 @@ export function usePrimeAPI(options: UsePrimeAPIOptions) {
   const [error, setError] = useState<string | null>(null);
 
   const serviceRef = useRef<PrimeAPIService | null>(null);
+  const currentPairsRef = useRef<string[]>(options.pairs);
   const maxHistoryLength = options.maxHistoryLength || 100;
+
+  // Keep currentPairsRef up to date
+  useEffect(() => {
+    currentPairsRef.current = options.pairs;
+  }, [options.pairs]);
 
   useEffect(() => {
     if (!options.apiKey) {
@@ -43,6 +49,11 @@ export function usePrimeAPI(options: UsePrimeAPIOptions) {
     });
 
     service.setOnPrice((price) => {
+      // Only process prices for currently selected pairs (use ref to get latest value)
+      if (!currentPairsRef.current.includes(price.symbol)) {
+        return;
+      }
+
       // Update current prices
       setPrices((prev) => {
         const updated = new Map(prev);
