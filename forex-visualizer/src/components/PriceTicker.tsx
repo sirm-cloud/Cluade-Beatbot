@@ -23,6 +23,16 @@ export function PriceTicker({ price }: PriceTickerProps) {
   const formatPrice = (value: number) => value.toFixed(5);
   const formatSpread = (value: number) => (value * 10000).toFixed(1); // In pips
 
+  // Split price into main and decimal parts for better visual hierarchy
+  const splitPrice = (value: number) => {
+    const formatted = formatPrice(value);
+    const parts = formatted.split('.');
+    return {
+      whole: parts[0],
+      decimal: parts[1],
+    };
+  };
+
   const currentMid = (price.bid + price.ask) / 2;
 
   useEffect(() => {
@@ -52,32 +62,56 @@ export function PriceTicker({ price }: PriceTickerProps) {
     return `${sign}${priceChange.valueChange.toFixed(5)} (${sign}${priceChange.percentage.toFixed(2)}%)`;
   };
 
+  const midPrice = splitPrice(currentMid);
+  const bidPrice = splitPrice(price.bid);
+  const askPrice = splitPrice(price.ask);
+
   return (
     <div className="price-ticker">
       <div className="ticker-header">
         <div className="ticker-title">
           <h3 className="ticker-symbol">{price.symbol}</h3>
-          <div className="ticker-change" style={{ color: getChangeColor() }}>
-            {getChangeText()}
-          </div>
+          <span className="ticker-time">
+            {new Date(price.timestamp).toLocaleTimeString()}
+          </span>
         </div>
-        <span className="ticker-time">
-          {new Date(price.timestamp).toLocaleTimeString()}
-        </span>
+        <div className="ticker-change" style={{ color: getChangeColor() }}>
+          {getChangeText()}
+        </div>
       </div>
-      <div className="ticker-prices">
+
+      <div className="mid-price-section">
+        <span className="mid-label">MID PRICE</span>
+        <div className="mid-price-value">
+          <span className="direction-indicator" style={{ color: getChangeColor() }}>
+            {priceChange.direction === 'up' ? '↑' : priceChange.direction === 'down' ? '↓' : '−'}
+          </span>
+          <span className="price-whole">{midPrice.whole}</span>
+          <span className="price-decimal">.{midPrice.decimal}</span>
+        </div>
+      </div>
+
+      <div className="bid-ask-section">
         <div className="price-item bid">
           <span className="price-label">BID</span>
-          <span className="price-value">{formatPrice(price.bid)}</span>
+          <div className="price-value">
+            <span className="price-whole">{bidPrice.whole}</span>
+            <span className="price-decimal">.{bidPrice.decimal}</span>
+          </div>
         </div>
+        <div className="divider"></div>
         <div className="price-item ask">
           <span className="price-label">ASK</span>
-          <span className="price-value">{formatPrice(price.ask)}</span>
+          <div className="price-value">
+            <span className="price-whole">{askPrice.whole}</span>
+            <span className="price-decimal">.{askPrice.decimal}</span>
+          </div>
         </div>
-        <div className="price-item spread">
-          <span className="price-label">SPREAD</span>
-          <span className="price-value">{formatSpread(price.spread)} pips</span>
-        </div>
+      </div>
+
+      <div className="spread-section">
+        <span className="spread-label">SPREAD</span>
+        <span className="spread-value">{formatSpread(price.spread)} pips</span>
       </div>
     </div>
   );

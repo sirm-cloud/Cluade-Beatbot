@@ -4,33 +4,46 @@
   padding: 20px;
   color: white;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  min-width: 300px;
+  min-width: 320px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.price-ticker:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
 }
 
 .ticker-header {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 15px;
-  gap: 10px;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .ticker-title {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 12px;
 }
 
 .ticker-symbol {
   margin: 0;
-  font-size: 24px;
+  font-size: 20px;
   font-weight: bold;
-  letter-spacing: 1px;
+  letter-spacing: 1.5px;
+}
+
+.ticker-time {
+  font-size: 11px;
+  opacity: 0.7;
+  font-family: 'Courier New', monospace;
 }
 
 .ticker-change {
   font-weight: 600;
-  font-size: 13px;
+  font-size: 12px;
   padding: 4px 10px;
   background: rgba(0, 0, 0, 0.25);
   border-radius: 6px;
@@ -38,50 +51,136 @@
   white-space: nowrap;
 }
 
-.ticker-time {
-  font-size: 12px;
-  opacity: 0.8;
+/* Mid Price Section */
+.mid-price-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 20px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  backdrop-filter: blur(10px);
 }
 
-.ticker-prices {
+.mid-label {
+  font-size: 10px;
+  opacity: 0.8;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  font-weight: 600;
+}
+
+.mid-price-value {
   display: flex;
-  gap: 15px;
-  justify-content: space-between;
+  align-items: baseline;
+  gap: 6px;
+  font-family: 'Courier New', monospace;
+}
+
+.direction-indicator {
+  font-size: 28px;
+  font-weight: bold;
+  line-height: 1;
+}
+
+.price-whole {
+  font-size: 36px;
+  font-weight: bold;
+  font-variant-numeric: tabular-nums;
+}
+
+.price-decimal {
+  font-size: 24px;
+  font-weight: 600;
+  opacity: 0.85;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Bid/Ask Section */
+.bid-ask-section {
+  display: flex;
+  gap: 0;
+  margin-bottom: 16px;
 }
 
 .price-item {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 8px;
   flex: 1;
-  padding: 10px;
+  padding: 12px;
   background: rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
   backdrop-filter: blur(10px);
+  align-items: center;
 }
 
 .price-item.bid {
-  border-left: 3px solid #4ade80;
+  border-radius: 8px 0 0 8px;
+  background: rgba(74, 222, 128, 0.15);
+  border: 2px solid rgba(74, 222, 128, 0.4);
+  border-right: 1px solid rgba(74, 222, 128, 0.4);
 }
 
 .price-item.ask {
-  border-left: 3px solid #f87171;
+  border-radius: 0 8px 8px 0;
+  background: rgba(248, 113, 113, 0.15);
+  border: 2px solid rgba(248, 113, 113, 0.4);
+  border-left: 1px solid rgba(248, 113, 113, 0.4);
 }
 
-.price-item.spread {
-  border-left: 3px solid #fbbf24;
+.divider {
+  width: 1px;
+  background: rgba(255, 255, 255, 0.3);
 }
 
 .price-label {
-  font-size: 11px;
-  opacity: 0.8;
+  font-size: 10px;
+  opacity: 0.9;
   text-transform: uppercase;
-  letter-spacing: 1px;
-  font-weight: 600;
+  letter-spacing: 1.5px;
+  font-weight: 700;
 }
 
 .price-value {
-  font-size: 18px;
+  display: flex;
+  align-items: baseline;
+  font-family: 'Courier New', monospace;
+}
+
+.price-item .price-whole {
+  font-size: 22px;
+  font-weight: bold;
+}
+
+.price-item .price-decimal {
+  font-size: 16px;
+  font-weight: 600;
+  opacity: 0.85;
+}
+
+/* Spread Section */
+.spread-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  background: rgba(251, 191, 36, 0.15);
+  border: 2px solid rgba(251, 191, 36, 0.4);
+  border-radius: 8px;
+}
+
+.spread-label {
+  font-size: 10px;
+  opacity: 0.9;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  font-weight: 700;
+}
+
+.spread-value {
+  font-size: 16px;
   font-weight: bold;
   font-family: 'Courier New', monospace;
 }
