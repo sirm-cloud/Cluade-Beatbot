@@ -16,22 +16,33 @@ A professional real-time forex data visualization web application built with Rea
 - **Dual Chart Types**:
   - **Line Charts** - Clean bid/ask price visualization with filled areas
   - **Candlestick Charts** - Professional OHLC (Open/High/Low/Close) candles with time-based aggregation
-- **Multiple Timeframes** - Switch between 1m, 5m, 15m, 1h, or all data views
+- **Separate Timeframes for Each Chart Type**:
+  - **Line Charts**: 1m, 5m, 15m, 1h, or all data views
+  - **Candlestick Charts**: 5s, 10s, or 30s intervals (each candle = exact timeframe)
 - **Timeframe-Aware Labels** - X-axis automatically adjusts based on selected timeframe
 - **Smooth Real-Time Updates** - Animations disabled for fluid data streaming
+- **Always 60 Candles** - Candlestick charts show 60 candles regardless of interval for consistent visualization
 
 ### Technical Indicators
 - **Moving Averages**:
   - SMA 20 (Simple Moving Average - 20 period) - Short-term trend
   - SMA 50 (Simple Moving Average - 50 period) - Medium-term trend
 - **Bollinger Bands** - Volatility indicator with upper, middle, and lower bands (20-period, 2 std dev)
+  - Visual distinction: dashed lines for upper/lower bands, solid line for middle band
 - **RSI** - Relative Strength Index (14-period) in separate panel
   - Identifies overbought (>70) and oversold (<30) conditions
-- **Interactive Tooltips** - Hover over indicators to see full name and detailed explanations
+- **Custom HTML Legend** - Interactive legend above charts with hover tooltips
+  - Tooltips display full indicator names and detailed explanations
+  - Chart tooltips disabled to prevent conflicts and improve readability
 - **Compatible with Both Chart Types** - All indicators work on line and candlestick charts
 
 ### User Experience
-- **Price Tickers** - Real-time display of bid, ask, spread (in pips), and price changes
+- **Redesigned Price Tickers** - Modern card layout with:
+  - Side-by-side bid/ask prices with color-coded backgrounds (green/red)
+  - Prominent mid-price display with directional arrows (↑/↓)
+  - Spread shown in pips with yellow accent
+  - Split decimal formatting for improved readability
+  - Real-time price change indicators with percentage
 - **Dynamic Pair Selection** - Easily add or remove currency pairs on the fly
 - **LocalStorage Persistence** - Remembers your selected pairs and API key between sessions
 - **Responsive Design** - Works seamlessly on desktop and mobile devices
@@ -86,20 +97,30 @@ npm run dev
 
 ### Available Forex Pairs
 
-The app supports 18+ popular forex pairs including:
-- **Major pairs**: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD
-- **Cross pairs**: EURGBP, EURJPY, GBPJPY, EURCHF, AUDJPY
-- **Exotic crosses**: GBPAUD, EURAUD, EURCAD, GBPCAD, GBPNZD, EURNZD
+The app currently features 10 carefully selected forex pairs:
+- **Major pairs**: EUR/USD, GBP/USD, USD/JPY, AUD/USD, USD/CAD
+- **Cross pairs**: EUR/GBP
+- **Asian & emerging markets**: USD/CNY, USD/KRW, USD/HKD
+- **Safe haven**: USD/CHF
+
+*Note: Search functionality for additional pairs will be added in a future update.*
 
 ### Understanding the Display
 
 #### Price Tickers
-- **Bid/Ask/Spread**: Current prices with 5 decimal precision
-- **Price Change**: Shows change value and percentage with color coding:
-  - 🟢 Green ↑ = Price increased
-  - 🔴 Red ↓ = Price decreased
-  - ⚪ Gray − = No change or initializing
-- **Timestamp**: Last update time for each pair
+New vertical layout prioritizes actionable data:
+1. **Header**: Symbol, timestamp, and price change with percentage
+2. **Bid/Ask Section**: Side-by-side display with:
+   - Green-tinted background for Bid (left)
+   - Red-tinted background for Ask (right)
+   - Split decimal pricing (larger whole numbers, smaller decimals)
+3. **Mid-Price Section**: Calculated mid-price with directional arrow:
+   - 🟢 Green ↑ = Price increased
+   - 🔴 Red ↓ = Price decreased
+   - ⚪ Gray − = No change or initializing
+4. **Spread Section**: Spread shown in pips with yellow accent
+
+All prices display with 5 decimal precision and monospace font for alignment.
 
 #### Charts
 - **Line Chart**:
@@ -116,13 +137,17 @@ The app supports 18+ popular forex pairs including:
 #### Technical Indicators
 - **SMA 20** (Yellow line): Short-term moving average
 - **SMA 50** (Purple line): Medium-term moving average
-- **BB** (Blue dashed/solid): Bollinger Bands for volatility
+- **BB** (Blue lines): Bollinger Bands for volatility
+  - Upper and Lower: Dashed lines
+  - Middle: Solid line
 - **RSI** (Purple, separate panel): Momentum oscillator (0-100 scale)
 
-Hover over any indicator line to see:
+Hover over any indicator in the **custom legend** (above the chart) to see:
 - Full indicator name
 - Detailed explanation of what it measures
-- Current value
+- Trading interpretation and usage
+
+*Note: Chart line tooltips are disabled. Use the legend for indicator information.*
 
 #### Connection Status
 - 🔵 Blue = Connecting
@@ -211,13 +236,22 @@ The optimized production files will be in the `dist/` directory.
 ### Technical Implementation Details
 
 #### Candlestick Aggregation
-Candles use time-based bucketing (not index-based) to ensure stability:
-- 1m view: 3-second candles
-- 5m view: 10-second candles
-- 15m view: 30-second candles
-- 1h view: 60-second candles
+**Line charts** and **candlestick charts** now have separate timeframe options:
 
-Only the most recent candle updates as new data arrives; historical candles remain stable.
+**Line Chart Timeframes:**
+- 1 minute (60 seconds of 1s data)
+- 5 minutes (300 seconds of 1s data)
+- 15 minutes (900 seconds of 1s data)
+- 1 hour (3600 seconds of 1s data)
+- All data (entire history)
+
+**Candlestick Chart Timeframes:**
+Each candle represents exactly one unit of the selected timeframe:
+- 5 seconds: Each candle = 5s interval (displays 60 candles = 5 minutes total)
+- 10 seconds: Each candle = 10s interval (displays 60 candles = 10 minutes total)
+- 30 seconds: Each candle = 30s interval (displays 60 candles = 30 minutes total)
+
+Candles use time-based bucketing (not index-based) to ensure stability. Only the most recent candle updates as new data arrives; historical candles remain stable. The 1-second option was removed as it produces flat candles with no meaningful OHLC data.
 
 #### Technical Indicators
 All indicators calculate using mid-price: `(bid + ask) / 2`
