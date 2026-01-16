@@ -44,16 +44,18 @@ export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
 
       chartRef.current = chart;
 
-      // v5 API: chart.addSeries({ type: 'Area', ...options })
+      // v5 API: Try minimal line series first
       const series = (chart as any).addSeries({
-        type: 'Area',
-        topColor: 'rgba(74, 222, 128, 0.4)',
-        bottomColor: 'rgba(74, 222, 128, 0.0)',
-        lineColor: '#4ade80',
+        type: 'Line',
+      });
+
+      // Apply styling after creation
+      series.applyOptions({
+        color: '#4ade80',
         lineWidth: 2,
       });
 
-      console.log('Successfully created Area series!');
+      console.log('Successfully created Line series!');
       seriesRef.current = series;
 
       // Handle resize
