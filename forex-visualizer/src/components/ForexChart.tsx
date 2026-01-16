@@ -33,17 +33,25 @@ interface ForexChartProps {
   height?: number;
 }
 
-type Timeframe = 'all' | '50' | '100' | '150' | '200';
+type Timeframe = 'all' | '1m' | '5m' | '15m' | '1h';
 
 export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const chartRef = useRef<Chart | null>(null);
-  const [timeframe, setTimeframe] = useState<Timeframe>('all');
+  const [timeframe, setTimeframe] = useState<Timeframe>('5m');
 
-  // Filter data based on selected timeframe
+  // Filter data based on selected timeframe (fx1s = 1 second data)
   const getFilteredData = () => {
     if (timeframe === 'all') return data;
-    const limit = parseInt(timeframe);
+
+    const timeframeMap: Record<Exclude<Timeframe, 'all'>, number> = {
+      '1m': 60,    // 60 seconds
+      '5m': 300,   // 5 minutes
+      '15m': 900,  // 15 minutes
+      '1h': 3600,  // 1 hour
+    };
+
+    const limit = timeframeMap[timeframe];
     return data.slice(-limit);
   };
 
@@ -181,10 +189,10 @@ export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
             onChange={(e) => setTimeframe(e.target.value as Timeframe)}
             className="timeframe-selector"
           >
-            <option value="50">Last 50 points</option>
-            <option value="100">Last 100 points</option>
-            <option value="150">Last 150 points</option>
-            <option value="200">Last 200 points</option>
+            <option value="1m">1 minute</option>
+            <option value="5m">5 minutes</option>
+            <option value="15m">15 minutes</option>
+            <option value="1h">1 hour</option>
             <option value="all">All data</option>
           </select>
           <span className="data-points">

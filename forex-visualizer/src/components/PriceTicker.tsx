@@ -37,19 +37,20 @@ export function PriceTicker({ price }: PriceTickerProps) {
     return '#9ca3af';
   };
 
-  const getChangeArrow = () => {
-    if (priceChange.direction === 'up') return '↑';
-    if (priceChange.direction === 'down') return '↓';
-    return '−';
+  const getChangeText = () => {
+    const valueChange = prevMidRef.current !== null ? currentMid - prevMidRef.current : 0;
+    const sign = valueChange >= 0 ? '+' : '';
+    return `${sign}${valueChange.toFixed(5)} (${sign}${priceChange.percentage.toFixed(2)}%)`;
   };
 
   return (
     <div className="price-ticker">
       <div className="ticker-header">
-        <h3 className="ticker-symbol">{price.symbol}</h3>
-        <div className="ticker-change" style={{ color: getChangeColor() }}>
-          <span className="change-arrow">{getChangeArrow()}</span>
-          <span className="change-percentage">{priceChange.percentage.toFixed(3)}%</span>
+        <div className="ticker-title">
+          <h3 className="ticker-symbol">{price.symbol}</h3>
+          <div className="ticker-change" style={{ color: getChangeColor() }}>
+            {getChangeText()}
+          </div>
         </div>
         <span className="ticker-time">
           {new Date(price.timestamp).toLocaleTimeString()}
