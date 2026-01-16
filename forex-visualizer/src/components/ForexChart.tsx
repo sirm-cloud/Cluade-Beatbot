@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { createChart } from 'lightweight-charts';
-import type { IChartApi, ISeriesApi } from 'lightweight-charts';
+import type { IChartApi } from 'lightweight-charts';
 import type { PriceHistory } from '../types/primeapi';
 import './ForexChart.css';
 
@@ -13,8 +13,7 @@ interface ForexChartProps {
 export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
-  const bidSeriesRef = useRef<ISeriesApi<any> | null>(null);
-  const askSeriesRef = useRef<ISeriesApi<any> | null>(null);
+  const seriesRef = useRef<any>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -45,21 +44,22 @@ export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
 
       chartRef.current = chart;
 
-      // Create bid line series (green) - using proper v5 API
-      const bidSeries = chart.addLineSeries({
-        color: '#4ade80',
-        lineWidth: 2,
-        title: 'Bid',
-      });
-      bidSeriesRef.current = bidSeries;
+      // Try to create a series - use area series which is more widely supported
+      let series;
+      try {
+        series = (chart as any).addAreaSeries({
+          topColor: 'rgba(74, 222, 128, 0.4)',
+          bottomColor: 'rgba(74, 222, 128, 0.0)',
+          lineColor: '#4ade80',
+          lineWidth: 2,
+        });
+      } catch (e) {
+        console.error('addAreaSeries failed, trying alternative', e);
+        // Fallback: try any available method
+        series = (chart as any).addSeries?.({ type: 'Area' });
+      }
 
-      // Create ask line series (red)
-      const askSeries = chart.addLineSeries({
-        color: '#f87171',
-        lineWidth: 2,
-        title: 'Ask',
-      });
-      askSeriesRef.current = askSeries;
+      seriesRef.current = series;
 
       // Handle resize
       const handleResize = () => {
@@ -83,21 +83,16 @@ export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
   }, [height]);
 
   useEffect(() => {
-    if (!bidSeriesRef.current || !askSeriesRef.current || data.length === 0) return;
+    if (!seriesRef.current || !data || data.length === 0) return;
 
     try {
-      const bidData = data.map((item) => ({
+      // Use mid price (average of bid and ask)
+      const chartData = data.map((item) => ({
         time: item.time,
-        value: item.bid,
+        value: item.mid,
       }));
 
-      const askData = data.map((item) => ({
-        time: item.time,
-        value: item.ask,
-      }));
-
-      bidSeriesRef.current.setData(bidData);
-      askSeriesRef.current.setData(askData);
+      seriesRef.current.setData(chartData);
 
       // Auto-scale to fit data
       chartRef.current?.timeScale().fitContent();
@@ -112,7 +107,9 @@ export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
       <div className="forex-chart">
         <div className="chart-header">
           <h3>{symbol}</h3>
-          <span className="error-text">Chart error: {error}</span>
+          <span className="error-text" style={{ color: '#f87171', fontSize: '12px' }}>
+            Chart unavailable (see price tickers above)
+          </span>
         </div>
       </div>
     );
