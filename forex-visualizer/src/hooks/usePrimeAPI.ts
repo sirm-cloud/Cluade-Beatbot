@@ -25,6 +25,27 @@ export function usePrimeAPI(options: UsePrimeAPIOptions) {
       return;
     }
 
+    // Clean up data for pairs that were removed
+    setPrices((prev) => {
+      const updated = new Map(prev);
+      Array.from(updated.keys()).forEach((symbol) => {
+        if (!options.pairs.includes(symbol)) {
+          updated.delete(symbol);
+        }
+      });
+      return updated;
+    });
+
+    setPriceHistory((prev) => {
+      const updated = new Map(prev);
+      Array.from(updated.keys()).forEach((symbol) => {
+        if (!options.pairs.includes(symbol)) {
+          updated.delete(symbol);
+        }
+      });
+      return updated;
+    });
+
     // Create service instance
     const service = new PrimeAPIService({
       apiKey: options.apiKey,
@@ -43,6 +64,11 @@ export function usePrimeAPI(options: UsePrimeAPIOptions) {
     });
 
     service.setOnPrice((price) => {
+      // Only update if this pair is still in the selected pairs
+      if (!options.pairs.includes(price.symbol)) {
+        return;
+      }
+
       // Update current prices
       setPrices((prev) => {
         const updated = new Map(prev);
