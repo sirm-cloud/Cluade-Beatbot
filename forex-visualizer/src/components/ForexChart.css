@@ -26,6 +26,7 @@
   gap: 10px;
 }
 
+.chart-type-selector,
 .timeframe-selector {
   padding: 6px 12px;
   background: #2a2a2a;
@@ -38,11 +39,13 @@
   transition: all 0.2s;
 }
 
+.chart-type-selector:hover,
 .timeframe-selector:hover {
   background: #3a3a3a;
   border-color: #667eea;
 }
 
+.chart-type-selector:focus,
 .timeframe-selector:focus {
   border-color: #667eea;
   box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);

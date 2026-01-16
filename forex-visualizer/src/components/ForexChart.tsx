@@ -10,15 +10,21 @@ import {
   Tooltip,
   Legend,
   Filler,
+  TimeScale,
 } from 'chart.js';
+import { CandlestickController, CandlestickElement } from 'chartjs-chart-financial';
+import 'chartjs-adapter-date-fns';
 import type { PriceHistory } from '../types/primeapi';
 import './ForexChart.css';
 
 // Register Chart.js components
 Chart.register(
   LineController,
+  CandlestickController,
+  CandlestickElement,
   CategoryScale,
   LinearScale,
+  TimeScale,
   PointElement,
   LineElement,
   Title,
@@ -34,11 +40,21 @@ interface ForexChartProps {
 }
 
 type Timeframe = 'all' | '1m' | '5m' | '15m' | '1h';
+type ChartType = 'line' | 'candlestick';
+
+interface CandleData {
+  x: number;
+  o: number; // open
+  h: number; // high
+  l: number; // low
+  c: number; // close
+}
 
 export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const chartRef = useRef<Chart | null>(null);
   const [timeframe, setTimeframe] = useState<Timeframe>('5m');
+  const [chartType, setChartType] = useState<ChartType>('line');
 
   // Filter data based on selected timeframe (fx1s = 1 second data)
   const getFilteredData = () => {
@@ -56,6 +72,45 @@ export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
   };
 
   const filteredData = getFilteredData();
+
+  // Aggregate data into candles for candlestick chart
+  const aggregateToCandles = (rawData: PriceHistory[]): CandleData[] => {
+    if (rawData.length === 0) return [];
+
+    // Determine candle interval based on timeframe
+    const candleIntervalMap: Record<Timeframe, number> = {
+      '1m': 3,     // 3-second candles
+      '5m': 10,    // 10-second candles
+      '15m': 30,   // 30-second candles
+      '1h': 60,    // 60-second candles
+      'all': Math.max(5, Math.floor(rawData.length / 100)), // Adaptive
+    };
+
+    const interval = candleIntervalMap[timeframe];
+    const candles: CandleData[] = [];
+
+    for (let i = 0; i < rawData.length; i += interval) {
+      const chunk = rawData.slice(i, Math.min(i + interval, rawData.length));
+      if (chunk.length === 0) continue;
+
+      // Use mid price for OHLC
+      const midPrices = chunk.map(item => (item.bid + item.ask) / 2);
+      const open = midPrices[0];
+      const close = midPrices[midPrices.length - 1];
+      const high = Math.max(...midPrices);
+      const low = Math.min(...midPrices);
+
+      candles.push({
+        x: chunk[0].time * 1000, // Convert to milliseconds
+        o: open,
+        h: high,
+        l: low,
+        c: close,
+      });
+    }
+
+    return candles;
+  };
 
   // Format labels based on timeframe
   const formatLabel = (timestamp: number, index: number, totalPoints: number) => {
@@ -108,97 +163,183 @@ export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
       chartRef.current.destroy();
     }
 
-    // Prepare chart data with timeframe-aware labels
-    const labels = filteredData.map((item, index) =>
-      formatLabel(item.time, index, filteredData.length)
-    );
+    let config;
 
-    const config = {
-      type: 'line' as const,
-      data: {
-        labels,
-        datasets: [
-          {
-            label: 'Bid',
-            data: filteredData.map((item) => item.bid),
-            borderColor: 'rgb(74, 222, 128)',
-            backgroundColor: 'rgba(74, 222, 128, 0.1)',
-            borderWidth: 2,
-            tension: 0.4,
-            fill: true,
-            pointRadius: 0,
-            pointHoverRadius: 4,
-          },
-          {
-            label: 'Ask',
-            data: filteredData.map((item) => item.ask),
-            borderColor: 'rgb(248, 113, 113)',
-            backgroundColor: 'rgba(248, 113, 113, 0.1)',
-            borderWidth: 2,
-            tension: 0.4,
-            fill: true,
-            pointRadius: 0,
-            pointHoverRadius: 4,
-          },
-        ],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        animation: false, // Disable animations for smooth real-time updates
-        interaction: {
-          mode: 'index',
-          intersect: false,
+    if (chartType === 'line') {
+      // Prepare chart data with timeframe-aware labels for line chart
+      const labels = filteredData.map((item, index) =>
+        formatLabel(item.time, index, filteredData.length)
+      );
+
+      config = {
+        type: 'line' as const,
+        data: {
+          labels,
+          datasets: [
+            {
+              label: 'Bid',
+              data: filteredData.map((item) => item.bid),
+              borderColor: 'rgb(74, 222, 128)',
+              backgroundColor: 'rgba(74, 222, 128, 0.1)',
+              borderWidth: 2,
+              tension: 0.4,
+              fill: true,
+              pointRadius: 0,
+              pointHoverRadius: 4,
+            },
+            {
+              label: 'Ask',
+              data: filteredData.map((item) => item.ask),
+              borderColor: 'rgb(248, 113, 113)',
+              backgroundColor: 'rgba(248, 113, 113, 0.1)',
+              borderWidth: 2,
+              tension: 0.4,
+              fill: true,
+              pointRadius: 0,
+              pointHoverRadius: 4,
+            },
+          ],
         },
-        plugins: {
-          legend: {
-            position: 'top',
-            labels: {
-              color: '#d1d4dc',
-              font: {
-                size: 12,
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: false,
+          interaction: {
+            mode: 'index' as const,
+            intersect: false,
+          },
+          plugins: {
+            legend: {
+              position: 'top' as const,
+              labels: {
+                color: '#d1d4dc',
+                font: {
+                  size: 12,
+                },
+              },
+            },
+            tooltip: {
+              backgroundColor: 'rgba(0, 0, 0, 0.8)',
+              titleColor: '#fff',
+              bodyColor: '#fff',
+              borderColor: '#667eea',
+              borderWidth: 1,
+            },
+          },
+          scales: {
+            x: {
+              ticks: {
+                color: '#d1d4dc',
+                maxRotation: 0,
+                autoSkip: false,
+                font: {
+                  size: 10,
+                },
+              },
+              grid: {
+                color: 'rgba(255, 255, 255, 0.1)',
+              },
+            },
+            y: {
+              ticks: {
+                color: '#d1d4dc',
+                callback: function (value) {
+                  return (value as number).toFixed(5);
+                },
+              },
+              grid: {
+                color: 'rgba(255, 255, 255, 0.1)',
               },
             },
           },
-          tooltip: {
-            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-            titleColor: '#fff',
-            bodyColor: '#fff',
-            borderColor: '#667eea',
-            borderWidth: 1,
-          },
         },
-        scales: {
-          x: {
-            ticks: {
-              color: '#d1d4dc',
-              maxRotation: 0,
-              autoSkip: false, // Don't auto-skip since we're controlling labels manually
-              font: {
-                size: 10,
+      };
+    } else {
+      // Candlestick chart
+      const candles = aggregateToCandles(filteredData);
+
+      config = {
+        type: 'candlestick' as const,
+        data: {
+          datasets: [
+            {
+              label: symbol,
+              data: candles,
+              borderColor: '#667eea',
+              color: {
+                up: 'rgb(74, 222, 128)',
+                down: 'rgb(248, 113, 113)',
+                unchanged: '#9ca3af',
               },
             },
-            grid: {
-              color: 'rgba(255, 255, 255, 0.1)',
-            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: false,
+          interaction: {
+            mode: 'index' as const,
+            intersect: false,
           },
-          y: {
-            ticks: {
-              color: '#d1d4dc',
-              callback: function (value) {
-                return (value as number).toFixed(5);
+          plugins: {
+            legend: {
+              display: false,
+            },
+            tooltip: {
+              backgroundColor: 'rgba(0, 0, 0, 0.8)',
+              titleColor: '#fff',
+              bodyColor: '#fff',
+              borderColor: '#667eea',
+              borderWidth: 1,
+              callbacks: {
+                label: function (context: any) {
+                  const point = context.raw;
+                  return [
+                    `Open: ${point.o.toFixed(5)}`,
+                    `High: ${point.h.toFixed(5)}`,
+                    `Low: ${point.l.toFixed(5)}`,
+                    `Close: ${point.c.toFixed(5)}`,
+                  ];
+                },
               },
             },
-            grid: {
-              color: 'rgba(255, 255, 255, 0.1)',
+          },
+          scales: {
+            x: {
+              type: 'time' as const,
+              time: {
+                unit: timeframe === '1m' ? 'second' : 'minute',
+              },
+              ticks: {
+                color: '#d1d4dc',
+                maxRotation: 0,
+                font: {
+                  size: 10,
+                },
+              },
+              grid: {
+                color: 'rgba(255, 255, 255, 0.1)',
+              },
+            },
+            y: {
+              ticks: {
+                color: '#d1d4dc',
+                callback: function (value) {
+                  return (value as number).toFixed(5);
+                },
+              },
+              grid: {
+                color: 'rgba(255, 255, 255, 0.1)',
+              },
             },
           },
         },
-      },
-    };
+      };
+    }
 
     // Create new chart
-    chartRef.current = new Chart(ctx, config);
+    chartRef.current = new Chart(ctx, config as any);
 
     // Cleanup on unmount
     return () => {
@@ -206,7 +347,7 @@ export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
         chartRef.current.destroy();
       }
     };
-  }, [filteredData, symbol, timeframe]);
+  }, [filteredData, symbol, timeframe, chartType]);
 
   if (!data || data.length === 0) {
     return (
@@ -227,6 +368,14 @@ export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
         <h3>{symbol}</h3>
         <div className="chart-controls">
           <select
+            value={chartType}
+            onChange={(e) => setChartType(e.target.value as ChartType)}
+            className="chart-type-selector"
+          >
+            <option value="line">Line</option>
+            <option value="candlestick">Candlestick</option>
+          </select>
+          <select
             value={timeframe}
             onChange={(e) => setTimeframe(e.target.value as Timeframe)}
             className="timeframe-selector"
@@ -238,7 +387,10 @@ export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
             <option value="all">All data</option>
           </select>
           <span className="data-points">
-            {filteredData.length} / {data.length} points
+            {chartType === 'candlestick'
+              ? `${aggregateToCandles(filteredData).length} candles`
+              : `${filteredData.length} / ${data.length} points`
+            }
           </span>
         </div>
       </div>
