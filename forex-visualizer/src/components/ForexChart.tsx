@@ -15,6 +15,7 @@ import {
 import { CandlestickController, CandlestickElement } from 'chartjs-chart-financial';
 import 'chartjs-adapter-date-fns';
 import type { PriceHistory } from '../types/primeapi';
+import { calculateSMA, calculateRSI, calculateBollingerBands } from '../utils/indicators';
 import './ForexChart.css';
 
 // Register Chart.js components
@@ -53,8 +54,16 @@ interface CandleData {
 export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const chartRef = useRef<Chart | null>(null);
+  const rsiCanvasRef = useRef<HTMLCanvasElement>(null);
+  const rsiChartRef = useRef<Chart | null>(null);
   const [timeframe, setTimeframe] = useState<Timeframe>('1m');
   const [chartType, setChartType] = useState<ChartType>('line');
+  const [indicators, setIndicators] = useState({
+    sma20: false,
+    sma50: false,
+    bollinger: false,
+    rsi: false,
+  });
 
   // Filter data based on selected timeframe (fx1s = 1 second data)
   const getFilteredData = () => {
@@ -171,34 +180,105 @@ export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
         formatLabel(item.time, index, filteredData.length)
       );
 
+      const datasets: any[] = [
+        {
+          label: 'Bid',
+          data: filteredData.map((item) => item.bid),
+          borderColor: 'rgb(74, 222, 128)',
+          backgroundColor: 'rgba(74, 222, 128, 0.1)',
+          borderWidth: 2,
+          tension: 0.4,
+          fill: true,
+          pointRadius: 0,
+          pointHoverRadius: 4,
+        },
+        {
+          label: 'Ask',
+          data: filteredData.map((item) => item.ask),
+          borderColor: 'rgb(248, 113, 113)',
+          backgroundColor: 'rgba(248, 113, 113, 0.1)',
+          borderWidth: 2,
+          tension: 0.4,
+          fill: true,
+          pointRadius: 0,
+          pointHoverRadius: 4,
+        },
+      ];
+
+      // Add SMA 20 if enabled
+      if (indicators.sma20) {
+        const sma20 = calculateSMA(filteredData, 20);
+        datasets.push({
+          label: 'SMA 20',
+          data: sma20,
+          borderColor: 'rgb(251, 191, 36)',
+          borderWidth: 2,
+          tension: 0.4,
+          fill: false,
+          pointRadius: 0,
+          pointHoverRadius: 4,
+        });
+      }
+
+      // Add SMA 50 if enabled
+      if (indicators.sma50) {
+        const sma50 = calculateSMA(filteredData, 50);
+        datasets.push({
+          label: 'SMA 50',
+          data: sma50,
+          borderColor: 'rgb(139, 92, 246)',
+          borderWidth: 2,
+          tension: 0.4,
+          fill: false,
+          pointRadius: 0,
+          pointHoverRadius: 4,
+        });
+      }
+
+      // Add Bollinger Bands if enabled
+      if (indicators.bollinger) {
+        const bollinger = calculateBollingerBands(filteredData, 20, 2);
+        datasets.push(
+          {
+            label: 'BB Upper',
+            data: bollinger.upper,
+            borderColor: 'rgba(59, 130, 246, 0.5)',
+            borderWidth: 1,
+            borderDash: [5, 5],
+            tension: 0.4,
+            fill: false,
+            pointRadius: 0,
+            pointHoverRadius: 4,
+          },
+          {
+            label: 'BB Middle',
+            data: bollinger.middle,
+            borderColor: 'rgba(59, 130, 246, 0.3)',
+            borderWidth: 1,
+            tension: 0.4,
+            fill: false,
+            pointRadius: 0,
+            pointHoverRadius: 4,
+          },
+          {
+            label: 'BB Lower',
+            data: bollinger.lower,
+            borderColor: 'rgba(59, 130, 246, 0.5)',
+            borderWidth: 1,
+            borderDash: [5, 5],
+            tension: 0.4,
+            fill: false,
+            pointRadius: 0,
+            pointHoverRadius: 4,
+          }
+        );
+      }
+
       config = {
         type: 'line' as const,
         data: {
           labels,
-          datasets: [
-            {
-              label: 'Bid',
-              data: filteredData.map((item) => item.bid),
-              borderColor: 'rgb(74, 222, 128)',
-              backgroundColor: 'rgba(74, 222, 128, 0.1)',
-              borderWidth: 2,
-              tension: 0.4,
-              fill: true,
-              pointRadius: 0,
-              pointHoverRadius: 4,
-            },
-            {
-              label: 'Ask',
-              data: filteredData.map((item) => item.ask),
-              borderColor: 'rgb(248, 113, 113)',
-              backgroundColor: 'rgba(248, 113, 113, 0.1)',
-              borderWidth: 2,
-              tension: 0.4,
-              fill: true,
-              pointRadius: 0,
-              pointHoverRadius: 4,
-            },
-          ],
+          datasets,
         },
         options: {
           responsive: true,
@@ -258,21 +338,107 @@ export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
       // Candlestick chart
       const candles = aggregateToCandles(filteredData);
 
+      const candleDatasets: any[] = [
+        {
+          label: symbol,
+          data: candles,
+          borderColor: '#667eea',
+          color: {
+            up: 'rgb(74, 222, 128)',
+            down: 'rgb(248, 113, 113)',
+            unchanged: '#9ca3af',
+          },
+        },
+      ];
+
+      // Add SMA 20 if enabled (as line dataset)
+      if (indicators.sma20) {
+        const sma20 = calculateSMA(filteredData, 20);
+        candleDatasets.push({
+          type: 'line',
+          label: 'SMA 20',
+          data: sma20.map((value, index) => ({
+            x: filteredData[index].time * 1000,
+            y: value,
+          })),
+          borderColor: 'rgb(251, 191, 36)',
+          borderWidth: 2,
+          tension: 0.4,
+          fill: false,
+          pointRadius: 0,
+        });
+      }
+
+      // Add SMA 50 if enabled
+      if (indicators.sma50) {
+        const sma50 = calculateSMA(filteredData, 50);
+        candleDatasets.push({
+          type: 'line',
+          label: 'SMA 50',
+          data: sma50.map((value, index) => ({
+            x: filteredData[index].time * 1000,
+            y: value,
+          })),
+          borderColor: 'rgb(139, 92, 246)',
+          borderWidth: 2,
+          tension: 0.4,
+          fill: false,
+          pointRadius: 0,
+        });
+      }
+
+      // Add Bollinger Bands if enabled
+      if (indicators.bollinger) {
+        const bollinger = calculateBollingerBands(filteredData, 20, 2);
+        candleDatasets.push(
+          {
+            type: 'line',
+            label: 'BB Upper',
+            data: bollinger.upper.map((value, index) => ({
+              x: filteredData[index].time * 1000,
+              y: value,
+            })),
+            borderColor: 'rgba(59, 130, 246, 0.5)',
+            borderWidth: 1,
+            borderDash: [5, 5],
+            tension: 0.4,
+            fill: false,
+            pointRadius: 0,
+          },
+          {
+            type: 'line',
+            label: 'BB Middle',
+            data: bollinger.middle.map((value, index) => ({
+              x: filteredData[index].time * 1000,
+              y: value,
+            })),
+            borderColor: 'rgba(59, 130, 246, 0.3)',
+            borderWidth: 1,
+            tension: 0.4,
+            fill: false,
+            pointRadius: 0,
+          },
+          {
+            type: 'line',
+            label: 'BB Lower',
+            data: bollinger.lower.map((value, index) => ({
+              x: filteredData[index].time * 1000,
+              y: value,
+            })),
+            borderColor: 'rgba(59, 130, 246, 0.5)',
+            borderWidth: 1,
+            borderDash: [5, 5],
+            tension: 0.4,
+            fill: false,
+            pointRadius: 0,
+          }
+        );
+      }
+
       config = {
         type: 'candlestick' as const,
         data: {
-          datasets: [
-            {
-              label: symbol,
-              data: candles,
-              borderColor: '#667eea',
-              color: {
-                up: 'rgb(74, 222, 128)',
-                down: 'rgb(248, 113, 113)',
-                unchanged: '#9ca3af',
-              },
-            },
-          ],
+          datasets: candleDatasets,
         },
         options: {
           responsive: true,
@@ -284,7 +450,15 @@ export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
           },
           plugins: {
             legend: {
-              display: false,
+              display: indicators.sma20 || indicators.sma50 || indicators.bollinger,
+              position: 'top' as const,
+              labels: {
+                color: '#d1d4dc',
+                font: {
+                  size: 12,
+                },
+                filter: (item: any) => item.text !== symbol, // Hide candlestick label
+              },
             },
             tooltip: {
               backgroundColor: 'rgba(0, 0, 0, 0.8)',
@@ -347,7 +521,143 @@ export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
         chartRef.current.destroy();
       }
     };
-  }, [filteredData, symbol, timeframe, chartType]);
+  }, [filteredData, symbol, timeframe, chartType, indicators]);
+
+  // RSI Chart Effect
+  useEffect(() => {
+    if (!indicators.rsi || !rsiCanvasRef.current) {
+      if (rsiChartRef.current) {
+        rsiChartRef.current.destroy();
+        rsiChartRef.current = null;
+      }
+      return;
+    }
+
+    const ctx = rsiCanvasRef.current.getContext('2d');
+    if (!ctx) return;
+
+    // Destroy existing RSI chart
+    if (rsiChartRef.current) {
+      rsiChartRef.current.destroy();
+    }
+
+    const rsiData = calculateRSI(filteredData, 14);
+
+    let labels;
+    let rsiChartData;
+
+    if (chartType === 'line') {
+      labels = filteredData.map((item, index) =>
+        formatLabel(item.time, index, filteredData.length)
+      );
+      rsiChartData = rsiData;
+    } else {
+      // For candlestick, use time-based x-axis
+      rsiChartData = rsiData.map((value, index) => ({
+        x: filteredData[index].time * 1000,
+        y: value,
+      }));
+    }
+
+    const rsiConfig = {
+      type: chartType === 'line' ? ('line' as const) : ('line' as const),
+      data: {
+        labels: chartType === 'line' ? labels : undefined,
+        datasets: [
+          {
+            label: 'RSI(14)',
+            data: rsiChartData,
+            borderColor: 'rgb(168, 85, 247)',
+            backgroundColor: 'rgba(168, 85, 247, 0.1)',
+            borderWidth: 2,
+            tension: 0.4,
+            fill: false,
+            pointRadius: 0,
+            pointHoverRadius: 4,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: false,
+        interaction: {
+          mode: 'index' as const,
+          intersect: false,
+        },
+        plugins: {
+          legend: {
+            display: true,
+            position: 'top' as const,
+            labels: {
+              color: '#d1d4dc',
+              font: {
+                size: 10,
+              },
+            },
+          },
+          tooltip: {
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            titleColor: '#fff',
+            bodyColor: '#fff',
+            borderColor: '#667eea',
+            borderWidth: 1,
+          },
+        },
+        scales: {
+          x: chartType === 'candlestick' ? {
+            type: 'time' as const,
+            time: {
+              unit: timeframe === '1m' ? 'second' : 'minute',
+            },
+            ticks: {
+              color: '#d1d4dc',
+              maxRotation: 0,
+              font: {
+                size: 10,
+              },
+            },
+            grid: {
+              color: 'rgba(255, 255, 255, 0.1)',
+            },
+          } : {
+            ticks: {
+              color: '#d1d4dc',
+              maxRotation: 0,
+              autoSkip: false,
+              font: {
+                size: 10,
+              },
+            },
+            grid: {
+              color: 'rgba(255, 255, 255, 0.1)',
+            },
+          },
+          y: {
+            min: 0,
+            max: 100,
+            ticks: {
+              color: '#d1d4dc',
+              stepSize: 20,
+            },
+            grid: {
+              color: 'rgba(255, 255, 255, 0.1)',
+            },
+          },
+        },
+      },
+    };
+
+    // Draw RSI levels (30 and 70)
+    rsiChartRef.current = new Chart(ctx, rsiConfig as any);
+
+    // Cleanup on unmount
+    return () => {
+      if (rsiChartRef.current) {
+        rsiChartRef.current.destroy();
+      }
+    };
+  }, [filteredData, indicators.rsi, chartType, timeframe]);
 
   if (!data || data.length === 0) {
     return (
@@ -386,11 +696,50 @@ export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
             <option value="1h">1 hour</option>
             <option value="all">All data</option>
           </select>
+          <div className="indicator-controls">
+            <label className="indicator-checkbox">
+              <input
+                type="checkbox"
+                checked={indicators.sma20}
+                onChange={(e) => setIndicators({ ...indicators, sma20: e.target.checked })}
+              />
+              <span>SMA 20</span>
+            </label>
+            <label className="indicator-checkbox">
+              <input
+                type="checkbox"
+                checked={indicators.sma50}
+                onChange={(e) => setIndicators({ ...indicators, sma50: e.target.checked })}
+              />
+              <span>SMA 50</span>
+            </label>
+            <label className="indicator-checkbox">
+              <input
+                type="checkbox"
+                checked={indicators.bollinger}
+                onChange={(e) => setIndicators({ ...indicators, bollinger: e.target.checked })}
+              />
+              <span>BB</span>
+            </label>
+            <label className="indicator-checkbox">
+              <input
+                type="checkbox"
+                checked={indicators.rsi}
+                onChange={(e) => setIndicators({ ...indicators, rsi: e.target.checked })}
+              />
+              <span>RSI</span>
+            </label>
+          </div>
         </div>
       </div>
       <div className="chart-container" style={{ height: `${height}px` }}>
         <canvas ref={canvasRef}></canvas>
       </div>
+      {indicators.rsi && (
+        <div className="rsi-container" style={{ height: '120px', marginTop: '10px' }}>
+          <canvas ref={rsiCanvasRef}></canvas>
+        </div>
+      )}
     </div>
   );
 }
