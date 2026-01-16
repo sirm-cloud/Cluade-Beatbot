@@ -226,6 +226,10 @@ export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
           fill: false,
           pointRadius: 0,
           pointHoverRadius: 4,
+          indicatorInfo: {
+            fullName: 'Simple Moving Average (20)',
+            description: 'Average of the last 20 prices. Shows short-term trend direction.',
+          },
         });
       }
 
@@ -241,6 +245,10 @@ export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
           fill: false,
           pointRadius: 0,
           pointHoverRadius: 4,
+          indicatorInfo: {
+            fullName: 'Simple Moving Average (50)',
+            description: 'Average of the last 50 prices. Shows medium-term trend direction.',
+          },
         });
       }
 
@@ -258,6 +266,10 @@ export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
             fill: false,
             pointRadius: 0,
             pointHoverRadius: 4,
+            indicatorInfo: {
+              fullName: 'Bollinger Band Upper',
+              description: 'Upper band (+2 std dev). Price touching this may indicate overbought conditions.',
+            },
           },
           {
             label: 'BB Middle',
@@ -268,6 +280,10 @@ export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
             fill: false,
             pointRadius: 0,
             pointHoverRadius: 4,
+            indicatorInfo: {
+              fullName: 'Bollinger Band Middle',
+              description: '20-period SMA. The baseline for Bollinger Bands.',
+            },
           },
           {
             label: 'BB Lower',
@@ -279,6 +295,10 @@ export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
             fill: false,
             pointRadius: 0,
             pointHoverRadius: 4,
+            indicatorInfo: {
+              fullName: 'Bollinger Band Lower',
+              description: 'Lower band (-2 std dev). Price touching this may indicate oversold conditions.',
+            },
           }
         );
       }
@@ -308,11 +328,35 @@ export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
               },
             },
             tooltip: {
-              backgroundColor: 'rgba(0, 0, 0, 0.8)',
+              backgroundColor: 'rgba(0, 0, 0, 0.9)',
               titleColor: '#fff',
               bodyColor: '#fff',
               borderColor: '#667eea',
               borderWidth: 1,
+              callbacks: {
+                label: function (context: any) {
+                  const dataset = context.dataset;
+                  const value = context.parsed.y;
+                  let label = dataset.label || '';
+
+                  if (value !== null) {
+                    label += `: ${value.toFixed(5)}`;
+                  }
+
+                  return label;
+                },
+                afterLabel: function (context: any) {
+                  const dataset = context.dataset;
+                  if (dataset.indicatorInfo) {
+                    return [
+                      '',
+                      dataset.indicatorInfo.fullName,
+                      dataset.indicatorInfo.description,
+                    ];
+                  }
+                  return [];
+                },
+              },
             },
           },
           scales: {
@@ -375,6 +419,10 @@ export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
           tension: 0.4,
           fill: false,
           pointRadius: 0,
+          indicatorInfo: {
+            fullName: 'Simple Moving Average (20)',
+            description: 'Average of the last 20 prices. Shows short-term trend direction.',
+          },
         });
       }
 
@@ -393,6 +441,10 @@ export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
           tension: 0.4,
           fill: false,
           pointRadius: 0,
+          indicatorInfo: {
+            fullName: 'Simple Moving Average (50)',
+            description: 'Average of the last 50 prices. Shows medium-term trend direction.',
+          },
         });
       }
 
@@ -413,6 +465,10 @@ export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
             tension: 0.4,
             fill: false,
             pointRadius: 0,
+            indicatorInfo: {
+              fullName: 'Bollinger Band Upper',
+              description: 'Upper band (+2 std dev). Price touching this may indicate overbought conditions.',
+            },
           },
           {
             type: 'line',
@@ -426,6 +482,10 @@ export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
             tension: 0.4,
             fill: false,
             pointRadius: 0,
+            indicatorInfo: {
+              fullName: 'Bollinger Band Middle',
+              description: '20-period SMA. The baseline for Bollinger Bands.',
+            },
           },
           {
             type: 'line',
@@ -440,6 +500,10 @@ export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
             tension: 0.4,
             fill: false,
             pointRadius: 0,
+            indicatorInfo: {
+              fullName: 'Bollinger Band Lower',
+              description: 'Lower band (-2 std dev). Price touching this may indicate oversold conditions.',
+            },
           }
         );
       }
@@ -470,20 +534,44 @@ export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
               },
             },
             tooltip: {
-              backgroundColor: 'rgba(0, 0, 0, 0.8)',
+              backgroundColor: 'rgba(0, 0, 0, 0.9)',
               titleColor: '#fff',
               bodyColor: '#fff',
               borderColor: '#667eea',
               borderWidth: 1,
               callbacks: {
                 label: function (context: any) {
+                  const dataset = context.dataset;
                   const point = context.raw;
-                  return [
-                    `Open: ${point.o.toFixed(5)}`,
-                    `High: ${point.h.toFixed(5)}`,
-                    `Low: ${point.l.toFixed(5)}`,
-                    `Close: ${point.c.toFixed(5)}`,
-                  ];
+
+                  // For candlestick data
+                  if (point && point.o !== undefined) {
+                    return [
+                      `Open: ${point.o.toFixed(5)}`,
+                      `High: ${point.h.toFixed(5)}`,
+                      `Low: ${point.l.toFixed(5)}`,
+                      `Close: ${point.c.toFixed(5)}`,
+                    ];
+                  }
+
+                  // For indicator lines
+                  const value = context.parsed.y;
+                  let label = dataset.label || '';
+                  if (value !== null) {
+                    label += `: ${value.toFixed(5)}`;
+                  }
+                  return label;
+                },
+                afterLabel: function (context: any) {
+                  const dataset = context.dataset;
+                  if (dataset.indicatorInfo) {
+                    return [
+                      '',
+                      dataset.indicatorInfo.fullName,
+                      dataset.indicatorInfo.description,
+                    ];
+                  }
+                  return [];
                 },
               },
             },
@@ -583,6 +671,10 @@ export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
             fill: false,
             pointRadius: 0,
             pointHoverRadius: 4,
+            indicatorInfo: {
+              fullName: 'Relative Strength Index (14)',
+              description: 'Momentum indicator (0-100). >70 = overbought, <30 = oversold.',
+            },
           },
         ],
       },
@@ -606,11 +698,35 @@ export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
             },
           },
           tooltip: {
-            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            backgroundColor: 'rgba(0, 0, 0, 0.9)',
             titleColor: '#fff',
             bodyColor: '#fff',
             borderColor: '#667eea',
             borderWidth: 1,
+            callbacks: {
+              label: function (context: any) {
+                const dataset = context.dataset;
+                const value = context.parsed.y;
+                let label = dataset.label || '';
+
+                if (value !== null) {
+                  label += `: ${value.toFixed(2)}`;
+                }
+
+                return label;
+              },
+              afterLabel: function (context: any) {
+                const dataset = context.dataset;
+                if (dataset.indicatorInfo) {
+                  return [
+                    '',
+                    dataset.indicatorInfo.fullName,
+                    dataset.indicatorInfo.description,
+                  ];
+                }
+                return [];
+              },
+            },
           },
         },
         scales: {

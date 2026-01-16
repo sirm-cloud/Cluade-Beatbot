@@ -1,34 +1,58 @@
 # Forex Data Visualizer
 
-A real-time forex data visualization web application built with React, TypeScript, and the PrimeAPI.io WebSocket API. Stream and visualize bid/ask prices for ~2,300 forex trading pairs with interactive charts.
+A professional real-time forex data visualization web application built with React, TypeScript, and the PrimeAPI.io WebSocket API. Stream and visualize bid/ask prices for 2,300+ forex trading pairs with interactive charts, technical indicators, and advanced analytics.
 
-![Forex Visualizer](https://img.shields.io/badge/React-19.2.0-blue) ![TypeScript](https://img.shields.io/badge/TypeScript-5.9.3-blue) ![Vite](https://img.shields.io/badge/Vite-7.2.4-646cff)
+![Forex Visualizer](https://img.shields.io/badge/React-19.2.0-blue) ![TypeScript](https://img.shields.io/badge/TypeScript-5.9.3-blue) ![Vite](https://img.shields.io/badge/Vite-7.2.4-646cff) ![Chart.js](https://img.shields.io/badge/Chart.js-4.5.1-FF6384)
 
-## Features
+## ✨ Features
 
-- **Real-time WebSocket Streaming** - Live forex price updates via PrimeAPI.io
-- **Interactive Charts** - Beautiful line charts showing bid/ask price movements using Lightweight Charts
+### Real-Time Data Streaming
+- **WebSocket Integration** - Live forex price updates via PrimeAPI.io (fx1s stream)
 - **Multiple Currency Pairs** - Monitor up to 5 forex pairs simultaneously
-- **Price Tickers** - Real-time display of bid, ask, and spread for each pair
-- **Dynamic Pair Selection** - Easily add or remove currency pairs on the fly
-- **Responsive Design** - Works seamlessly on desktop and mobile devices
-- **Connection Management** - Automatic reconnection with visual status indicators
+- **Price Change Indicators** - Live price movement with colored arrows and percentage changes
+- **Automatic Reconnection** - Robust error handling with automatic retry logic
 
-## Tech Stack
+### Advanced Charting
+- **Dual Chart Types**:
+  - **Line Charts** - Clean bid/ask price visualization with filled areas
+  - **Candlestick Charts** - Professional OHLC (Open/High/Low/Close) candles with time-based aggregation
+- **Multiple Timeframes** - Switch between 1m, 5m, 15m, 1h, or all data views
+- **Timeframe-Aware Labels** - X-axis automatically adjusts based on selected timeframe
+- **Smooth Real-Time Updates** - Animations disabled for fluid data streaming
+
+### Technical Indicators
+- **Moving Averages**:
+  - SMA 20 (Simple Moving Average - 20 period) - Short-term trend
+  - SMA 50 (Simple Moving Average - 50 period) - Medium-term trend
+- **Bollinger Bands** - Volatility indicator with upper, middle, and lower bands (20-period, 2 std dev)
+- **RSI** - Relative Strength Index (14-period) in separate panel
+  - Identifies overbought (>70) and oversold (<30) conditions
+- **Interactive Tooltips** - Hover over indicators to see full name and detailed explanations
+- **Compatible with Both Chart Types** - All indicators work on line and candlestick charts
+
+### User Experience
+- **Price Tickers** - Real-time display of bid, ask, spread (in pips), and price changes
+- **Dynamic Pair Selection** - Easily add or remove currency pairs on the fly
+- **LocalStorage Persistence** - Remembers your selected pairs and API key between sessions
+- **Responsive Design** - Works seamlessly on desktop and mobile devices
+- **Connection Status** - Visual indicators for connection state
+
+## 🎯 Tech Stack
 
 - **Frontend**: React 19 with TypeScript
-- **Build Tool**: Vite
-- **Charts**: Lightweight Charts (TradingView)
-- **WebSocket**: Native WebSocket API
-- **State Management**: React Hooks
+- **Build Tool**: Vite 7
+- **Charts**: Chart.js 4.5 with chartjs-chart-financial plugin
+- **WebSocket**: Native WebSocket API with custom service layer
+- **State Management**: React Hooks with useRef for stable updates
 - **Styling**: Modern CSS with gradients and animations
+- **Date Formatting**: date-fns with Chart.js time adapter
 
-## Prerequisites
+## 📋 Prerequisites
 
 - Node.js 18+ and npm
 - A PrimeAPI.io API key ([Get a free trial key](https://console.primeapi.io))
 
-## Installation
+## 🚀 Installation
 
 1. Clone the repository:
 ```bash
@@ -48,59 +72,95 @@ npm run dev
 
 4. Open your browser and navigate to `http://localhost:5173`
 
-## Usage
+## 📖 Usage
 
 ### Getting Started
 
 1. **Enter API Key**: When you first launch the app, you'll be prompted to enter your PrimeAPI.io API key
 2. **Connect**: Click the "Connect" button to establish a WebSocket connection
 3. **Select Pairs**: Use the pair selector to add or remove forex pairs (up to 5 pairs)
-4. **View Data**: Watch real-time price tickers and charts update automatically
+4. **Choose Chart Type**: Switch between Line and Candlestick charts
+5. **Select Timeframe**: Choose from 1m, 5m, 15m, 1h, or all data
+6. **Enable Indicators**: Toggle SMA 20, SMA 50, BB, or RSI indicators
+7. **View Data**: Watch real-time price tickers and charts update automatically
 
 ### Available Forex Pairs
 
 The app supports 18+ popular forex pairs including:
-- Major pairs: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD
-- Cross pairs: EURGBP, EURJPY, GBPJPY, EURCHF, AUDJPY
-- Exotic crosses: GBPAUD, EURAUD, EURCAD, GBPCAD, GBPNZD, EURNZD
+- **Major pairs**: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD
+- **Cross pairs**: EURGBP, EURJPY, GBPJPY, EURCHF, AUDJPY
+- **Exotic crosses**: GBPAUD, EURAUD, EURCAD, GBPCAD, GBPNZD, EURNZD
 
 ### Understanding the Display
 
-- **Price Tickers**: Show current bid, ask, and spread (in pips)
-- **Charts**: Display historical bid (green) and ask (red) price movements
-- **Status Indicator**:
-  - 🔵 Blue = Connecting
-  - 🟡 Yellow = Connected
-  - 🟢 Green = Authenticated & Receiving Data
-  - 🔴 Red = Error
+#### Price Tickers
+- **Bid/Ask/Spread**: Current prices with 5 decimal precision
+- **Price Change**: Shows change value and percentage with color coding:
+  - 🟢 Green ↑ = Price increased
+  - 🔴 Red ↓ = Price decreased
+  - ⚪ Gray − = No change or initializing
+- **Timestamp**: Last update time for each pair
 
-## Project Structure
+#### Charts
+- **Line Chart**:
+  - Green filled area = Bid prices
+  - Red filled area = Ask prices
+  - Indicators overlay directly on price chart
+
+- **Candlestick Chart**:
+  - Green candles = Closing price higher than opening (bullish)
+  - Red candles = Closing price lower than opening (bearish)
+  - Hover to see OHLC values
+  - Time-based candle aggregation (e.g., 3s candles for 1m view)
+
+#### Technical Indicators
+- **SMA 20** (Yellow line): Short-term moving average
+- **SMA 50** (Purple line): Medium-term moving average
+- **BB** (Blue dashed/solid): Bollinger Bands for volatility
+- **RSI** (Purple, separate panel): Momentum oscillator (0-100 scale)
+
+Hover over any indicator line to see:
+- Full indicator name
+- Detailed explanation of what it measures
+- Current value
+
+#### Connection Status
+- 🔵 Blue = Connecting
+- 🟡 Yellow = Connected
+- 🟢 Green = Authenticated & Receiving Data
+- 🔴 Red = Error
+
+## 📁 Project Structure
 
 ```
 forex-visualizer/
 ├── src/
-│   ├── components/          # React components
-│   │   ├── ForexChart.tsx   # Chart component
-│   │   ├── PriceTicker.tsx  # Price display component
-│   │   └── PairSelector.tsx # Currency pair selector
-│   ├── hooks/               # Custom React hooks
-│   │   └── usePrimeAPI.ts   # WebSocket hook
-│   ├── services/            # Business logic
-│   │   └── PrimeAPIService.ts # WebSocket service
-│   ├── types/               # TypeScript types
-│   │   └── primeapi.ts      # API type definitions
-│   ├── App.tsx              # Main app component
-│   ├── App.css              # App styles
-│   ├── index.css            # Global styles
-│   └── main.tsx             # Entry point
-├── public/                  # Static assets
-├── package.json             # Dependencies
-├── tsconfig.json            # TypeScript config
-├── vite.config.ts           # Vite config
-└── README.md                # This file
+│   ├── components/              # React components
+│   │   ├── ForexChart.tsx       # Chart component with indicators
+│   │   ├── ForexChart.css       # Chart styling
+│   │   ├── PriceTicker.tsx      # Price display with changes
+│   │   ├── PriceTicker.css      # Ticker styling
+│   │   └── PairSelector.tsx     # Currency pair selector
+│   ├── hooks/                   # Custom React hooks
+│   │   └── usePrimeAPI.ts       # WebSocket hook with state management
+│   ├── services/                # Business logic
+│   │   └── PrimeAPIService.ts   # WebSocket service with reconnection
+│   ├── types/                   # TypeScript types
+│   │   └── primeapi.ts          # API type definitions
+│   ├── utils/                   # Utility functions
+│   │   └── indicators.ts        # Technical indicator calculations
+│   ├── App.tsx                  # Main app component
+│   ├── App.css                  # App styles
+│   ├── index.css                # Global styles
+│   └── main.tsx                 # Entry point
+├── public/                      # Static assets
+├── package.json                 # Dependencies
+├── tsconfig.json                # TypeScript config
+├── vite.config.ts               # Vite config
+└── README.md                    # This file
 ```
 
-## API Configuration
+## ⚙️ API Configuration
 
 The app uses PrimeAPI.io's WebSocket API with the following settings:
 
@@ -108,6 +168,7 @@ The app uses PrimeAPI.io's WebSocket API with the following settings:
 - **Stream Mode**: `fx1s` (1 message per second per pair)
 - **Max History**: 200 data points per pair
 - **Auto-Reconnect**: Enabled with up to 5 retry attempts
+- **Persistence**: API key and pair selection saved in localStorage
 
 ### Changing Stream Mode
 
@@ -124,7 +185,7 @@ const { status, prices, priceHistory, error } = usePrimeAPI({
 
 **Note**: The `fx` stream can generate hundreds of messages per second for popular pairs. Ensure your application can handle this volume.
 
-## Building for Production
+## 🔧 Building for Production
 
 1. Build the application:
 ```bash
@@ -138,7 +199,7 @@ npm run preview
 
 The optimized production files will be in the `dist/` directory.
 
-## Development
+## 👨‍💻 Development
 
 ### Available Scripts
 
@@ -146,6 +207,44 @@ The optimized production files will be in the `dist/` directory.
 - `npm run build` - Build for production
 - `npm run preview` - Preview production build
 - `npm run lint` - Run ESLint
+
+### Technical Implementation Details
+
+#### Candlestick Aggregation
+Candles use time-based bucketing (not index-based) to ensure stability:
+- 1m view: 3-second candles
+- 5m view: 10-second candles
+- 15m view: 30-second candles
+- 1h view: 60-second candles
+
+Only the most recent candle updates as new data arrives; historical candles remain stable.
+
+#### Technical Indicators
+All indicators calculate using mid-price: `(bid + ask) / 2`
+
+**Simple Moving Average (SMA)**:
+```typescript
+SMA = (P₁ + P₂ + ... + Pₙ) / n
+```
+
+**Relative Strength Index (RSI)**:
+```typescript
+RSI = 100 - (100 / (1 + RS))
+where RS = Average Gain / Average Loss over period
+```
+
+**Bollinger Bands**:
+```typescript
+Middle Band = 20-period SMA
+Upper Band = Middle + (2 × Standard Deviation)
+Lower Band = Middle - (2 × Standard Deviation)
+```
+
+#### State Management
+The app uses React hooks with refs to prevent stale closures:
+- `useRef` tracks current pairs to filter incoming WebSocket messages
+- Separate effects handle connection vs. subscription updates
+- LocalStorage synchronization on state changes
 
 ### Adding New Features
 
@@ -160,36 +259,51 @@ const AVAILABLE_PAIRS = [
 ];
 ```
 
-**Changing Chart Colors:**
-Edit the series colors in `src/components/ForexChart.tsx`:
+**Adding New Technical Indicators:**
+1. Add calculation function to `src/utils/indicators.ts`
+2. Add indicator state to ForexChart component
+3. Add checkbox control to chart header
+4. Add dataset with `indicatorInfo` for tooltips
+5. Include in both line and candlestick configurations
+
+**Customizing Chart Colors:**
+Edit indicator colors in `src/components/ForexChart.tsx`:
 
 ```typescript
-const bidSeries = chart.addLineSeries({
-  color: '#4ade80', // Change bid line color
-  lineWidth: 2,
-});
+// Moving averages
+borderColor: 'rgb(251, 191, 36)', // SMA 20 - Yellow
+borderColor: 'rgb(139, 92, 246)', // SMA 50 - Purple
 
-const askSeries = chart.addLineSeries({
-  color: '#f87171', // Change ask line color
-  lineWidth: 2,
-});
+// Bollinger Bands
+borderColor: 'rgba(59, 130, 246, 0.5)', // Blue
+
+// RSI
+borderColor: 'rgb(168, 85, 247)', // Purple
 ```
 
-## Troubleshooting
+## 🐛 Troubleshooting
 
 ### WebSocket Connection Issues
 
 - **401 Authentication Error**: Check that your API key is valid
-- **Connection Drops**: The app will automatically attempt to reconnect
+- **Connection Drops**: The app will automatically attempt to reconnect (up to 5 times)
 - **No Data Appearing**: Ensure the selected currency pairs are valid
+- **Stale Data After Pair Removal**: Fixed via useRef tracking of current pairs
 
 ### Performance Issues
 
 - Reduce the number of monitored pairs (default max is 5)
 - Use `fx1s` stream mode instead of `fx` for lower message frequency
 - Reduce `maxHistoryLength` in the usePrimeAPI hook
+- Disable unused technical indicators
 
-## About PrimeAPI.io
+### Chart Display Issues
+
+- **Candles updating too frequently**: Ensure time-based bucketing is being used (not index-based)
+- **Indicators not showing**: Check that sufficient data points exist (SMA 50 needs 50+ points)
+- **RSI out of range**: Normal during initial calculation period, will stabilize after 15+ data points
+
+## 📊 About PrimeAPI.io
 
 PrimeAPI provides real-time and historical forex data covering 2,300+ currency pairs:
 - Ultra-low latency updates (milliseconds)
@@ -200,16 +314,36 @@ PrimeAPI provides real-time and historical forex data covering 2,300+ currency p
 
 Learn more at [https://www.primeapi.io](https://www.primeapi.io)
 
-## License
+## 📄 License
 
 MIT
 
-## Contributing
+## 🤝 Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
-## Support
+### Development Guidelines
 
-For API-related issues, visit [PrimeAPI.io Documentation](https://primeapi.readme.io/reference/primeapiio-documentation)
+- Follow TypeScript best practices
+- Use React hooks instead of class components
+- Maintain separation of concerns (components, hooks, services, utils)
+- Add JSDoc comments for complex functions
+- Test with multiple currency pairs and timeframes
+- Ensure indicators have tooltip explanations
 
-For application issues, please open an issue in this repository.
+## 💬 Support
+
+- **API Issues**: Visit [PrimeAPI.io Documentation](https://primeapi.readme.io/reference/primeapiio-documentation)
+- **Application Issues**: Open an issue in this repository
+- **Feature Requests**: Open an issue with the "enhancement" label
+
+## 🙏 Acknowledgments
+
+- **PrimeAPI.io** for providing real-time forex data
+- **Chart.js** for powerful charting capabilities
+- **chartjs-chart-financial** for candlestick chart support
+- **React** team for an excellent framework
+
+---
+
+**Built with ❤️ using React, TypeScript, and Chart.js**
