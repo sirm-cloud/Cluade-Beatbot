@@ -80,17 +80,6 @@ export function PriceTicker({ price }: PriceTickerProps) {
         </div>
       </div>
 
-      <div className="mid-price-section">
-        <span className="mid-label">MID PRICE</span>
-        <div className="mid-price-value">
-          <span className="direction-indicator" style={{ color: getChangeColor() }}>
-            {priceChange.direction === 'up' ? '↑' : priceChange.direction === 'down' ? '↓' : '−'}
-          </span>
-          <span className="price-whole">{midPrice.whole}</span>
-          <span className="price-decimal">.{midPrice.decimal}</span>
-        </div>
-      </div>
-
       <div className="bid-ask-section">
         <div className="price-item bid">
           <span className="price-label">BID</span>
@@ -106,6 +95,17 @@ export function PriceTicker({ price }: PriceTickerProps) {
             <span className="price-whole">{askPrice.whole}</span>
             <span className="price-decimal">.{askPrice.decimal}</span>
           </div>
+        </div>
+      </div>
+
+      <div className="mid-price-section">
+        <span className="mid-label">MID PRICE</span>
+        <div className="mid-price-value">
+          <span className="direction-indicator" style={{ color: getChangeColor() }}>
+            {priceChange.direction === 'up' ? '↑' : priceChange.direction === 'down' ? '↓' : '−'}
+          </span>
+          <span className="price-whole">{midPrice.whole}</span>
+          <span className="price-decimal">.{midPrice.decimal}</span>
         </div>
       </div>
 
