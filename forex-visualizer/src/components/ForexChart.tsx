@@ -53,7 +53,7 @@ interface CandleData {
 export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const chartRef = useRef<Chart | null>(null);
-  const [timeframe, setTimeframe] = useState<Timeframe>('5m');
+  const [timeframe, setTimeframe] = useState<Timeframe>('1m');
   const [chartType, setChartType] = useState<ChartType>('line');
 
   // Filter data based on selected timeframe (fx1s = 1 second data)
@@ -386,12 +386,6 @@ export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
             <option value="1h">1 hour</option>
             <option value="all">All data</option>
           </select>
-          <span className="data-points">
-            {chartType === 'candlestick'
-              ? `${aggregateToCandles(filteredData).length} candles`
-              : `${filteredData.length} / ${data.length} points`
-            }
-          </span>
         </div>
       </div>
       <div className="chart-container" style={{ height: `${height}px` }}>
