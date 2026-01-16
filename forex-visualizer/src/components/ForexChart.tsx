@@ -56,6 +56,7 @@ export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
   const chartRef = useRef<Chart | null>(null);
   const rsiCanvasRef = useRef<HTMLCanvasElement>(null);
   const rsiChartRef = useRef<Chart | null>(null);
+  const legendRef = useRef<HTMLDivElement>(null);
   const [timeframe, setTimeframe] = useState<Timeframe>('1m');
   const [chartType, setChartType] = useState<ChartType>('line');
   const [indicators, setIndicators] = useState({
@@ -64,6 +65,67 @@ export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
     bollinger: false,
     rsi: false,
   });
+
+  // Legend item definitions with tooltips
+  const getLegendItems = () => {
+    const items = [
+      {
+        label: 'Bid',
+        color: 'rgb(74, 222, 128)',
+        tooltip: 'Bid Price',
+        description: 'The highest price a buyer is willing to pay for the currency pair.',
+      },
+      {
+        label: 'Ask',
+        color: 'rgb(248, 113, 113)',
+        tooltip: 'Ask Price',
+        description: 'The lowest price a seller is willing to accept for the currency pair.',
+      },
+    ];
+
+    if (indicators.sma20) {
+      items.push({
+        label: 'SMA 20',
+        color: 'rgb(251, 191, 36)',
+        tooltip: 'Simple Moving Average (20)',
+        description: 'Average of the last 20 prices. Shows short-term trend direction.',
+      });
+    }
+
+    if (indicators.sma50) {
+      items.push({
+        label: 'SMA 50',
+        color: 'rgb(139, 92, 246)',
+        tooltip: 'Simple Moving Average (50)',
+        description: 'Average of the last 50 prices. Shows medium-term trend direction.',
+      });
+    }
+
+    if (indicators.bollinger) {
+      items.push(
+        {
+          label: 'BB Upper',
+          color: 'rgba(59, 130, 246, 0.5)',
+          tooltip: 'Bollinger Band Upper',
+          description: 'Upper band (+2 std dev). Price touching this may indicate overbought conditions.',
+        },
+        {
+          label: 'BB Middle',
+          color: 'rgba(59, 130, 246, 0.3)',
+          tooltip: 'Bollinger Band Middle',
+          description: '20-period SMA. The baseline for Bollinger Bands.',
+        },
+        {
+          label: 'BB Lower',
+          color: 'rgba(59, 130, 246, 0.5)',
+          tooltip: 'Bollinger Band Lower',
+          description: 'Lower band (-2 std dev). Price touching this may indicate oversold conditions.',
+        }
+      );
+    }
+
+    return items;
+  };
 
   // Filter data based on selected timeframe (fx1s = 1 second data)
   const getFilteredData = () => {
@@ -319,13 +381,7 @@ export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
           },
           plugins: {
             legend: {
-              position: 'top' as const,
-              labels: {
-                color: '#d1d4dc',
-                font: {
-                  size: 12,
-                },
-              },
+              display: false, // Use custom HTML legend instead
             },
             tooltip: {
               backgroundColor: 'rgba(0, 0, 0, 0.9)',
@@ -523,15 +579,7 @@ export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
           },
           plugins: {
             legend: {
-              display: indicators.sma20 || indicators.sma50 || indicators.bollinger,
-              position: 'top' as const,
-              labels: {
-                color: '#d1d4dc',
-                font: {
-                  size: 12,
-                },
-                filter: (item: any) => item.text !== symbol, // Hide candlestick label
-              },
+              display: false, // Use custom HTML legend instead
             },
             tooltip: {
               backgroundColor: 'rgba(0, 0, 0, 0.9)',
@@ -688,14 +736,7 @@ export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
         },
         plugins: {
           legend: {
-            display: true,
-            position: 'top' as const,
-            labels: {
-              color: '#d1d4dc',
-              font: {
-                size: 10,
-              },
-            },
+            display: false, // Use custom HTML legend
           },
           tooltip: {
             backgroundColor: 'rgba(0, 0, 0, 0.9)',
@@ -857,12 +898,42 @@ export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
           </div>
         </div>
       </div>
+      <div className="custom-legend" ref={legendRef}>
+        {getLegendItems().map((item, index) => (
+          <div key={index} className="legend-item" title={`${item.tooltip}\n${item.description}`}>
+            <span
+              className="legend-color"
+              style={{ backgroundColor: item.color }}
+            ></span>
+            <span className="legend-label">{item.label}</span>
+            <div className="legend-tooltip">
+              <div className="legend-tooltip-title">{item.tooltip}</div>
+              <div className="legend-tooltip-desc">{item.description}</div>
+            </div>
+          </div>
+        ))}
+      </div>
       <div className="chart-container" style={{ height: `${height}px` }}>
         <canvas ref={canvasRef}></canvas>
       </div>
       {indicators.rsi && (
-        <div className="rsi-container" style={{ height: '120px', marginTop: '10px' }}>
-          <canvas ref={rsiCanvasRef}></canvas>
+        <div className="rsi-container" style={{ marginTop: '10px' }}>
+          <div className="custom-legend">
+            <div className="legend-item" title="Relative Strength Index (14)\nMomentum indicator (0-100). >70 = overbought, <30 = oversold.">
+              <span
+                className="legend-color"
+                style={{ backgroundColor: 'rgb(168, 85, 247)' }}
+              ></span>
+              <span className="legend-label">RSI(14)</span>
+              <div className="legend-tooltip">
+                <div className="legend-tooltip-title">Relative Strength Index (14)</div>
+                <div className="legend-tooltip-desc">Momentum indicator (0-100). &gt;70 = overbought, &lt;30 = oversold.</div>
+              </div>
+            </div>
+          </div>
+          <div style={{ height: '100px' }}>
+            <canvas ref={rsiCanvasRef}></canvas>
+          </div>
         </div>
       )}
     </div>
