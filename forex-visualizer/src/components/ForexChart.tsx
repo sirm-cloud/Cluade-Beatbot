@@ -57,6 +57,46 @@ export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
 
   const filteredData = getFilteredData();
 
+  // Format labels based on timeframe
+  const formatLabel = (timestamp: number, index: number, totalPoints: number) => {
+    const date = new Date(timestamp * 1000);
+
+    switch (timeframe) {
+      case '1m':
+        // For 1 minute: show every 10 seconds (MM:SS format)
+        if (index % 10 === 0 || index === totalPoints - 1) {
+          return date.toLocaleTimeString('en-US', { minute: '2-digit', second: '2-digit' });
+        }
+        return '';
+      case '5m':
+        // For 5 minutes: show every 30 seconds
+        if (index % 30 === 0 || index === totalPoints - 1) {
+          return date.toLocaleTimeString('en-US', { minute: '2-digit', second: '2-digit' });
+        }
+        return '';
+      case '15m':
+        // For 15 minutes: show every 2 minutes (120 seconds)
+        if (index % 120 === 0 || index === totalPoints - 1) {
+          return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+        }
+        return '';
+      case '1h':
+        // For 1 hour: show every 10 minutes (600 seconds)
+        if (index % 600 === 0 || index === totalPoints - 1) {
+          return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+        }
+        return '';
+      case 'all':
+      default:
+        // For all data: show sparse labels
+        const skipFactor = Math.max(1, Math.floor(totalPoints / 10));
+        if (index % skipFactor === 0 || index === totalPoints - 1) {
+          return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+        }
+        return '';
+    }
+  };
+
   useEffect(() => {
     if (!canvasRef.current) return;
 
@@ -68,11 +108,10 @@ export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
       chartRef.current.destroy();
     }
 
-    // Prepare chart data
-    const labels = filteredData.map((item) => {
-      const date = new Date(item.time * 1000);
-      return date.toLocaleTimeString();
-    });
+    // Prepare chart data with timeframe-aware labels
+    const labels = filteredData.map((item, index) =>
+      formatLabel(item.time, index, filteredData.length)
+    );
 
     const config = {
       type: 'line' as const,
@@ -134,7 +173,10 @@ export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
             ticks: {
               color: '#d1d4dc',
               maxRotation: 0,
-              autoSkipPadding: 20,
+              autoSkip: false, // Don't auto-skip since we're controlling labels manually
+              font: {
+                size: 10,
+              },
             },
             grid: {
               color: 'rgba(255, 255, 255, 0.1)',
@@ -164,7 +206,7 @@ export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
         chartRef.current.destroy();
       }
     };
-  }, [filteredData, symbol]);
+  }, [filteredData, symbol, timeframe]);
 
   if (!data || data.length === 0) {
     return (

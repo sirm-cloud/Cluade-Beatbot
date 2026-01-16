@@ -8,9 +8,16 @@ interface PriceTickerProps {
 
 export function PriceTicker({ price }: PriceTickerProps) {
   const prevMidRef = useRef<number | null>(null);
-  const [priceChange, setPriceChange] = useState<{ direction: 'up' | 'down' | 'neutral'; percentage: number }>({
+  const [priceChange, setPriceChange] = useState<{
+    direction: 'up' | 'down' | 'neutral';
+    valueChange: number;
+    percentage: number;
+    hasData: boolean;
+  }>({
     direction: 'neutral',
+    valueChange: 0,
     percentage: 0,
+    hasData: false,
   });
 
   const formatPrice = (value: number) => value.toFixed(5);
@@ -25,7 +32,9 @@ export function PriceTicker({ price }: PriceTickerProps) {
 
       setPriceChange({
         direction: change > 0 ? 'up' : change < 0 ? 'down' : 'neutral',
+        valueChange: change,
         percentage: Math.abs(percentChange),
+        hasData: true,
       });
     }
     prevMidRef.current = currentMid;
@@ -38,9 +47,9 @@ export function PriceTicker({ price }: PriceTickerProps) {
   };
 
   const getChangeText = () => {
-    const valueChange = prevMidRef.current !== null ? currentMid - prevMidRef.current : 0;
-    const sign = valueChange >= 0 ? '+' : '';
-    return `${sign}${valueChange.toFixed(5)} (${sign}${priceChange.percentage.toFixed(2)}%)`;
+    if (!priceChange.hasData) return '−';
+    const sign = priceChange.valueChange >= 0 ? '+' : '';
+    return `${sign}${priceChange.valueChange.toFixed(5)} (${sign}${priceChange.percentage.toFixed(2)}%)`;
   };
 
   return (
