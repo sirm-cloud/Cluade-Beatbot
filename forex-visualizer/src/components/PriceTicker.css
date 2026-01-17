@@ -55,32 +55,34 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 14px;
+  padding: 10px 12px;
   background: linear-gradient(90deg, rgba(102, 126, 234, 0.15) 0%, rgba(102, 126, 234, 0.15) 50%, rgba(251, 191, 36, 0.15) 50%, rgba(251, 191, 36, 0.15) 100%);
   border: 2px solid rgba(102, 126, 234, 0.4);
   border-right: 2px solid rgba(251, 191, 36, 0.4);
   border-radius: 8px;
-  gap: 16px;
+  gap: 12px;
   min-width: 0;
 }
 
 .mid-price-container {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
   flex: 1;
-  gap: 12px;
+  gap: 8px;
   min-width: 0;
   overflow: hidden;
+  max-width: 55%;
 }
 
 .spread-container {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
   gap: 8px;
   flex-shrink: 0;
-  min-width: 140px;
+  min-width: 130px;
+  max-width: 45%;
 }
 
 .mid-label {
@@ -97,21 +99,25 @@
   align-items: center;
   gap: 6px;
   font-family: 'Courier New', monospace;
-  flex-shrink: 0;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .direction-indicator {
-  font-size: 32px;
+  font-size: 28px;
   font-weight: 900;
   line-height: 1;
   text-shadow: 0 0 4px rgba(0, 0, 0, 0.3);
   transform: scaleX(1.2);
+  flex-shrink: 0;
 }
 
 .price-display {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: bold;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .price-whole {
@@ -200,7 +206,7 @@
 }
 
 .spread-value {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: bold;
   font-family: 'Courier New', monospace;
   white-space: nowrap;
