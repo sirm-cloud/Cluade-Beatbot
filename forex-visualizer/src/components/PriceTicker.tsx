@@ -71,13 +71,13 @@ export function PriceTicker({ price }: PriceTickerProps) {
       <div className="ticker-header">
         <div className="ticker-title">
           <h3 className="ticker-symbol">{price.symbol}</h3>
-          <span className="ticker-time">
-            {new Date(price.timestamp).toLocaleTimeString()}
-          </span>
+          <div className="ticker-change" style={{ color: getChangeColor() }}>
+            {getChangeText()}
+          </div>
         </div>
-        <div className="ticker-change" style={{ color: getChangeColor() }}>
-          {getChangeText()}
-        </div>
+        <span className="ticker-time">
+          {new Date(price.timestamp).toLocaleTimeString()}
+        </span>
       </div>
 
       <div className="bid-ask-section">
