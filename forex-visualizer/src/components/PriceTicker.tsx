@@ -69,11 +69,9 @@ export function PriceTicker({ price }: PriceTickerProps) {
   return (
     <div className="price-ticker">
       <div className="ticker-header">
-        <div className="ticker-title">
-          <h3 className="ticker-symbol">{price.symbol}</h3>
-          <div className="ticker-change" style={{ color: getChangeColor() }}>
-            {getChangeText()}
-          </div>
+        <h3 className="ticker-symbol">{price.symbol}</h3>
+        <div className="ticker-change" style={{ color: getChangeColor() }}>
+          {getChangeText()}
         </div>
         <span className="ticker-time">
           {new Date(price.timestamp).toLocaleTimeString()}
@@ -98,19 +96,20 @@ export function PriceTicker({ price }: PriceTickerProps) {
         </div>
       </div>
 
-      <div className="mid-price-section">
-        <span className="mid-label">MID PRICE</span>
-        <div className="mid-price-value">
-          <span className="direction-indicator" style={{ color: getChangeColor() }}>
-            {priceChange.direction === 'up' ? '↑' : priceChange.direction === 'down' ? '↓' : '−'}
-          </span>
-          <span className="price-display">{formatPrice(currentMid)}</span>
+      <div className="mid-spread-section">
+        <div className="mid-price-container">
+          <span className="mid-label">MID PRICE</span>
+          <div className="mid-price-value">
+            <span className="direction-indicator" style={{ color: getChangeColor() }}>
+              {priceChange.direction === 'up' ? '↑' : priceChange.direction === 'down' ? '↓' : '−'}
+            </span>
+            <span className="price-display">{formatPrice(currentMid)}</span>
+          </div>
         </div>
-      </div>
-
-      <div className="spread-section">
-        <span className="spread-label">SPREAD</span>
-        <span className="spread-value">{formatSpread(price.spread)} pips</span>
+        <div className="spread-container">
+          <span className="spread-label">SPREAD</span>
+          <span className="spread-value">{formatSpread(price.spread)} pips</span>
+        </div>
       </div>
     </div>
   );

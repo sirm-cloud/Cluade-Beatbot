@@ -15,17 +15,12 @@
 
 .ticker-header {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
   margin-bottom: 20px;
   padding-bottom: 12px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.ticker-title {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
 }
 
 .ticker-symbol {
@@ -33,12 +28,15 @@
   font-size: 20px;
   font-weight: bold;
   letter-spacing: 1.5px;
+  flex-shrink: 0;
 }
 
 .ticker-time {
   font-size: 11px;
   opacity: 0.7;
   font-family: 'Courier New', monospace;
+  margin-left: auto;
+  flex-shrink: 0;
 }
 
 .ticker-change {
@@ -52,16 +50,33 @@
   width: fit-content;
 }
 
-/* Mid Price Section */
-.mid-price-section {
+/* Mid Price and Spread Combined Section */
+.mid-spread-section {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 10px 14px;
-  background: rgba(102, 126, 234, 0.15);
+  background: linear-gradient(90deg, rgba(102, 126, 234, 0.15) 0%, rgba(102, 126, 234, 0.15) 50%, rgba(251, 191, 36, 0.15) 50%, rgba(251, 191, 36, 0.15) 100%);
   border: 2px solid rgba(102, 126, 234, 0.4);
+  border-right: 2px solid rgba(251, 191, 36, 0.4);
   border-radius: 8px;
-  margin-bottom: 16px;
+  gap: 24px;
+}
+
+.mid-price-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex: 1;
+  gap: 12px;
+}
+
+.spread-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
 }
 
 .mid-label {
@@ -167,16 +182,6 @@
   opacity: 0.85;
 }
 
-/* Spread Section */
-.spread-section {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 14px;
-  background: rgba(251, 191, 36, 0.15);
-  border: 2px solid rgba(251, 191, 36, 0.4);
-  border-radius: 8px;
-}
 
 .spread-label {
   font-size: 10px;
