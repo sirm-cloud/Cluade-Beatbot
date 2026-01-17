@@ -53,7 +53,7 @@
 /* Mid Price and Spread Combined Section */
 .mid-spread-section {
   display: flex;
-  justify-content: flex-start;
+  justify-content: space-between;
   align-items: center;
   padding: 10px 12px;
   background: linear-gradient(90deg, rgba(102, 126, 234, 0.15) 0%, rgba(102, 126, 234, 0.15) 50%, rgba(251, 191, 36, 0.15) 50%, rgba(251, 191, 36, 0.15) 100%);
