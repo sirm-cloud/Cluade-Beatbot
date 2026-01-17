@@ -51,11 +51,25 @@ export function useForexData({
 
     if (pairs.length === 0) {
       setTestStatus('disconnected');
+      setTestPrices([]);
+      setTestHistory(new Map());
       service.stop();
       return;
     }
 
     setTestStatus('connecting');
+
+    // Clean up prices and history for pairs that are no longer selected
+    setTestPrices(prev => prev.filter(p => pairs.includes(p.symbol)));
+    setTestHistory(prev => {
+      const newHistory = new Map();
+      pairs.forEach(pair => {
+        if (prev.has(pair)) {
+          newHistory.set(pair, prev.get(pair)!);
+        }
+      });
+      return newHistory;
+    });
 
     // Start generating test data
     service.start(pairs, (price: ForexPrice) => {

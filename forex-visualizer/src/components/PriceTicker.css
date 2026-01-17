@@ -79,10 +79,11 @@
 }
 
 .direction-indicator {
-  font-size: 24px;
+  font-size: 32px;
   font-weight: 900;
   line-height: 1;
   text-shadow: 0 0 4px rgba(0, 0, 0, 0.3);
+  transform: scaleX(1.2);
 }
 
 .price-display {
