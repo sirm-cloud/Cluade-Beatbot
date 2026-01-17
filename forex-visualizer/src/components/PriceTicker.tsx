@@ -104,8 +104,7 @@ export function PriceTicker({ price }: PriceTickerProps) {
           <span className="direction-indicator" style={{ color: getChangeColor() }}>
             {priceChange.direction === 'up' ? '↑' : priceChange.direction === 'down' ? '↓' : '−'}
           </span>
-          <span className="price-whole">{midPrice.whole}</span>
-          <span className="price-decimal">.{midPrice.decimal}</span>
+          <span className="price-display">{formatPrice(currentMid)}</span>
         </div>
       </div>
 
