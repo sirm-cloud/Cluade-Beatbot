@@ -27,8 +27,48 @@
 .subtitle {
   color: #d1d4dc;
   font-size: 18px;
-  margin: 0 0 40px 0;
+  margin: 0 0 30px 0;
   opacity: 0.8;
+}
+
+.mode-toggle {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 30px;
+}
+
+.mode-btn {
+  flex: 1;
+  padding: 12px 24px;
+  background: rgba(58, 58, 58, 0.5);
+  border: 2px solid #3a3a3a;
+  border-radius: 8px;
+  color: #d1d4dc;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.mode-btn:hover {
+  background: rgba(58, 58, 58, 0.7);
+  border-color: #667eea;
+}
+
+.mode-btn.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-color: #667eea;
+  color: white;
+}
+
+.test-mode-info {
+  color: #d1d4dc;
+  font-size: 14px;
+  padding: 15px;
+  background: rgba(102, 126, 234, 0.1);
+  border: 1px solid rgba(102, 126, 234, 0.3);
+  border-radius: 8px;
+  margin: 0;
 }
 
 .login-form {
@@ -114,6 +154,16 @@
   gap: 10px;
   color: #d1d4dc;
   font-size: 14px;
+}
+
+.mode-badge {
+  padding: 4px 12px;
+  background: rgba(102, 126, 234, 0.2);
+  border: 1px solid rgba(102, 126, 234, 0.5);
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
 }
 
 .status-indicator {

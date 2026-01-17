@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { usePrimeAPI } from './hooks/usePrimeAPI';
+import { useForexData } from './hooks/useForexData';
 import { PriceTicker } from './components/PriceTicker';
 import { ForexChart } from './components/ForexChart';
 import { PairSelector } from './components/PairSelector';
@@ -15,6 +15,7 @@ const AVAILABLE_PAIRS = [
 const STORAGE_KEYS = {
   SELECTED_PAIRS: 'forex-visualizer-selected-pairs',
   API_KEY: 'forex-visualizer-api-key',
+  MODE: 'forex-visualizer-mode',
 };
 
 function App() {
@@ -23,6 +24,10 @@ function App() {
   const [selectedPairs, setSelectedPairs] = useState<string[]>(() => {
     const saved = localStorage.getItem(STORAGE_KEYS.SELECTED_PAIRS);
     return saved ? JSON.parse(saved) : ['EURUSD', 'GBPUSD'];
+  });
+  const [mode, setMode] = useState<'live' | 'test'>(() => {
+    const saved = localStorage.getItem(STORAGE_KEYS.MODE);
+    return (saved as 'live' | 'test') || 'live';
   });
   const [isConnected, setIsConnected] = useState(false);
 
@@ -39,7 +44,13 @@ function App() {
     localStorage.setItem(STORAGE_KEYS.SELECTED_PAIRS, JSON.stringify(selectedPairs));
   }, [selectedPairs]);
 
-  const { status, prices, priceHistory, error } = usePrimeAPI({
+  // Save mode to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.MODE, mode);
+  }, [mode]);
+
+  const { status, prices, priceHistory, error } = useForexData({
+    mode,
     apiKey: apiKey,
     pairs: selectedPairs,
     stream: 'fx1s', // 1 message per second to avoid overwhelming
@@ -47,11 +58,14 @@ function App() {
   });
 
   const handleConnect = () => {
-    if (inputApiKey.trim()) {
-      setApiKey(inputApiKey);
+    // Test mode doesn't require an API key
+    if (mode === 'test' || inputApiKey.trim()) {
+      setApiKey(mode === 'test' ? 'TEST_MODE' : inputApiKey);
       setIsConnected(true);
-      // Save API key to localStorage for convenience
-      localStorage.setItem(STORAGE_KEYS.API_KEY, inputApiKey);
+      // Save API key to localStorage for convenience (only in live mode)
+      if (mode === 'live' && inputApiKey.trim()) {
+        localStorage.setItem(STORAGE_KEYS.API_KEY, inputApiKey);
+      }
     }
   };
 
@@ -76,25 +90,55 @@ function App() {
       <div className="app">
         <div className="login-container">
           <h1>Forex Data Visualizer</h1>
-          <p className="subtitle">Real-time forex streaming with PrimeAPI.io</p>
-          <div className="login-form">
-            <input
-              type="text"
-              placeholder="Enter your PrimeAPI key"
-              value={inputApiKey}
-              onChange={(e) => setInputApiKey(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleConnect()}
-              className="api-key-input"
-            />
-            <button onClick={handleConnect} className="connect-btn">
-              Connect
+          <p className="subtitle">
+            {mode === 'live'
+              ? 'Real-time forex streaming with PrimeAPI.io'
+              : 'Test mode - Simulated data for development'}
+          </p>
+
+          <div className="mode-toggle">
+            <button
+              className={`mode-btn ${mode === 'live' ? 'active' : ''}`}
+              onClick={() => setMode('live')}
+            >
+              Live Mode
             </button>
-            <p className="help-text">
-              Don't have an API key?{' '}
-              <a href="https://console.primeapi.io" target="_blank" rel="noopener noreferrer">
-                Get a free trial key
-              </a>
-            </p>
+            <button
+              className={`mode-btn ${mode === 'test' ? 'active' : ''}`}
+              onClick={() => setMode('test')}
+            >
+              Test Mode
+            </button>
+          </div>
+
+          <div className="login-form">
+            {mode === 'live' && (
+              <>
+                <input
+                  type="text"
+                  placeholder="Enter your PrimeAPI key"
+                  value={inputApiKey}
+                  onChange={(e) => setInputApiKey(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleConnect()}
+                  className="api-key-input"
+                />
+                <p className="help-text">
+                  Don't have an API key?{' '}
+                  <a href="https://console.primeapi.io" target="_blank" rel="noopener noreferrer">
+                    Get a free trial key
+                  </a>
+                </p>
+              </>
+            )}
+            {mode === 'test' && (
+              <p className="test-mode-info">
+                Test mode generates simulated forex data for development and testing.
+                No API key required.
+              </p>
+            )}
+            <button onClick={handleConnect} className="connect-btn">
+              {mode === 'live' ? 'Connect' : 'Start Test Data'}
+            </button>
           </div>
         </div>
       </div>
@@ -107,6 +151,7 @@ function App() {
         <div>
           <h1>Forex Data Visualizer</h1>
           <div className="status-bar">
+            <span className="mode-badge">{mode === 'test' ? '🧪 TEST MODE' : '🔴 LIVE'}</span>
             <span className="status-indicator" style={{ backgroundColor: getStatusColor() }} />
             <span className="status-text">{status}</span>
             {error && <span className="error-text">⚠️ {error}</span>}
