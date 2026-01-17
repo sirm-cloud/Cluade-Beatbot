@@ -12,9 +12,10 @@ A real-time forex data visualization web application built with React, TypeScrip
 
 **Features:**
 - Real-time WebSocket streaming of forex prices (1-second updates)
+- Test mode with realistic simulated data (works offline & on weekends, no API key required)
 - Dual chart types: Line charts and Candlestick charts with separate timeframes
 - Technical indicators: SMA 20/50, Bollinger Bands, RSI with custom legend tooltips
-- Redesigned price tickers with bid/ask, mid-price, and spread
+- Redesigned price tickers with bid/ask, mid-price, and dynamic spread
 - Support for 10 curated forex pairs (majors, crosses, and emerging markets)
 - Responsive dashboard with live price updates and directional indicators
 - Automatic reconnection and localStorage persistence

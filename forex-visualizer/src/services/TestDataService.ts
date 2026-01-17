@@ -17,12 +17,14 @@ const BASE_RATES: Record<string, { mid: number; spread: number }> = {
 export class TestDataService {
   private intervalId: number | null = null;
   private currentRates: Map<string, number> = new Map();
+  private currentSpreads: Map<string, number> = new Map();
   private onPriceUpdate: ((price: ForexPrice) => void) | null = null;
 
   constructor() {
-    // Initialize current rates with base rates
-    Object.entries(BASE_RATES).forEach(([pair, { mid }]) => {
+    // Initialize current rates and spreads with base values
+    Object.entries(BASE_RATES).forEach(([pair, { mid, spread }]) => {
       this.currentRates.set(pair, mid);
+      this.currentSpreads.set(pair, spread);
     });
   }
 
@@ -87,29 +89,47 @@ export class TestDataService {
     // Update stored rate
     this.currentRates.set(pair, currentMid);
 
-    // Calculate bid/ask from mid and spread
-    const halfSpread = baseRate.spread / 2;
+    // Generate dynamic spread with volatility
+    let currentSpread = this.currentSpreads.get(pair) || baseRate.spread;
+
+    // Spread volatility (spreads widen/narrow based on market conditions)
+    // Spreads tend to fluctuate about 10-20% in normal conditions
+    const spreadVolatility = baseRate.spread * 0.05; // 5% of base spread
+    const spreadChange = (Math.random() - 0.5) * spreadVolatility * 2;
+
+    // Mean reversion for spread (tends back to base spread)
+    const spreadMeanReversion = (baseRate.spread - currentSpread) * 0.02;
+    currentSpread += spreadChange + spreadMeanReversion;
+
+    // Keep spread within reasonable bounds (50% to 200% of base spread)
+    const minSpread = baseRate.spread * 0.5;
+    const maxSpread = baseRate.spread * 2.0;
+    currentSpread = Math.max(minSpread, Math.min(maxSpread, currentSpread));
+
+    // Update stored spread
+    this.currentSpreads.set(pair, currentSpread);
+
+    // Calculate bid/ask from mid and dynamic spread
+    const halfSpread = currentSpread / 2;
     const bid = currentMid - halfSpread;
     const ask = currentMid + halfSpread;
-
-    // Calculate actual spread from bid/ask difference
-    const spread = ask - bid;
 
     return {
       symbol: pair,
       bid,
       ask,
-      spread,
+      spread: currentSpread,
       timestamp: Date.now(),
     };
   }
 
   /**
-   * Reset all rates to base values
+   * Reset all rates and spreads to base values
    */
   reset(): void {
-    Object.entries(BASE_RATES).forEach(([pair, { mid }]) => {
+    Object.entries(BASE_RATES).forEach(([pair, { mid, spread }]) => {
       this.currentRates.set(pair, mid);
+      this.currentSpreads.set(pair, spread);
     });
   }
 }

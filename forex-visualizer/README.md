@@ -40,11 +40,16 @@ A professional real-time forex data visualization web application built with Rea
 - **Redesigned Price Tickers** - Modern card layout with:
   - Side-by-side bid/ask prices with color-coded backgrounds (green/red)
   - Prominent mid-price display with directional arrows (↑/↓)
-  - Spread shown in pips with yellow accent
+  - Spread shown in pips with yellow accent (dynamically updates in test mode)
   - Split decimal formatting for improved readability
   - Real-time price change indicators with percentage
+- **Test Mode** - Realistic simulated data for development without API key:
+  - Random walk algorithm with mean reversion for authentic price behavior
+  - Dynamic spread variation (50-200% of base spread)
+  - Works offline and on weekends when forex markets are closed
+  - Perfect for testing, learning, and development
 - **Dynamic Pair Selection** - Easily add or remove currency pairs on the fly
-- **LocalStorage Persistence** - Remembers your selected pairs and API key between sessions
+- **LocalStorage Persistence** - Remembers your selected pairs, API key, and mode between sessions
 - **Responsive Design** - Works seamlessly on desktop and mobile devices
 - **Connection Status** - Visual indicators for connection state
 
@@ -61,7 +66,7 @@ A professional real-time forex data visualization web application built with Rea
 ## 📋 Prerequisites
 
 - Node.js 18+ and npm
-- A PrimeAPI.io API key ([Get a free trial key](https://console.primeapi.io))
+- A PrimeAPI.io API key ([Get a free trial key](https://console.primeapi.io)) - **Optional**: only required for Live Mode. Test Mode works without an API key
 
 ## 🚀 Installation
 
@@ -94,6 +99,36 @@ npm run dev
 5. **Select Timeframe**: Choose from 1m, 5m, 15m, 1h, or all data
 6. **Enable Indicators**: Toggle SMA 20, SMA 50, BB, or RSI indicators
 7. **View Data**: Watch real-time price tickers and charts update automatically
+
+### Test Mode for Development
+
+The app includes a **Test Mode** that generates realistic simulated forex data without requiring a PrimeAPI.io connection. This is perfect for:
+- **Weekend Development**: Forex markets are closed on weekends, but test mode works 24/7
+- **Testing Features**: Experiment with new functionality without using API credits
+- **Offline Development**: Work without an internet connection
+- **Learning**: Explore the app's features before committing to an API subscription
+
+**How to use Test Mode:**
+
+1. On the login screen, click the **"Test Mode"** button (appears on left side)
+2. Click **"Start Test Data"** (no API key required)
+3. Test data will begin streaming automatically for all selected currency pairs
+
+**Test Data Features:**
+- **Realistic Price Movement**: Random walk algorithm with mean reversion to simulate authentic price behavior
+- **Dynamic Spreads**: Spreads fluctuate between 50-200% of base spread, mimicking real market conditions
+- **Proportional Volatility**: Higher-priced pairs (JPY, KRW) have proportionally higher volatility
+- **1-Second Updates**: Same update frequency as live mode (`fx1s` stream)
+- **10 Currency Pairs**: All 10 curated pairs supported with realistic base rates
+
+**Test Mode vs Live Mode:**
+- Test mode data is statistically realistic but not actual market data
+- Spreads widen and narrow based on simulated volatility (±10-20% typical range)
+- Prices use mean reversion to prevent unrealistic drift
+- Perfect for testing technical indicators, timeframes, and UI features
+
+**Switching Modes:**
+You can toggle between Live and Test modes at any time. Your selected currency pairs and preferences are preserved when switching. The mode selection is saved to localStorage and persists across browser sessions
 
 ### Available Forex Pairs
 
@@ -167,14 +202,16 @@ forex-visualizer/
 │   │   ├── PriceTicker.css      # Ticker styling
 │   │   └── PairSelector.tsx     # Currency pair selector
 │   ├── hooks/                   # Custom React hooks
-│   │   └── usePrimeAPI.ts       # WebSocket hook with state management
+│   │   ├── usePrimeAPI.ts       # WebSocket hook with state management
+│   │   └── useForexData.ts      # Unified hook for live/test data
 │   ├── services/                # Business logic
-│   │   └── PrimeAPIService.ts   # WebSocket service with reconnection
+│   │   ├── PrimeAPIService.ts   # WebSocket service with reconnection
+│   │   └── TestDataService.ts   # Test data generator with dynamic spreads
 │   ├── types/                   # TypeScript types
 │   │   └── primeapi.ts          # API type definitions
 │   ├── utils/                   # Utility functions
 │   │   └── indicators.ts        # Technical indicator calculations
-│   ├── App.tsx                  # Main app component
+│   ├── App.tsx                  # Main app component with mode toggle
 │   ├── App.css                  # App styles
 │   ├── index.css                # Global styles
 │   └── main.tsx                 # Entry point
