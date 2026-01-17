@@ -60,7 +60,8 @@
   border: 2px solid rgba(102, 126, 234, 0.4);
   border-right: 2px solid rgba(251, 191, 36, 0.4);
   border-radius: 8px;
-  gap: 24px;
+  gap: 16px;
+  min-width: 0;
 }
 
 .mid-price-container {
@@ -69,14 +70,17 @@
   align-items: center;
   flex: 1;
   gap: 12px;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .spread-container {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   flex-shrink: 0;
+  min-width: 140px;
 }
 
 .mid-label {
@@ -85,6 +89,7 @@
   text-transform: uppercase;
   letter-spacing: 1.5px;
   font-weight: 700;
+  flex-shrink: 0;
 }
 
 .mid-price-value {
@@ -92,6 +97,7 @@
   align-items: center;
   gap: 6px;
   font-family: 'Courier New', monospace;
+  flex-shrink: 0;
 }
 
 .direction-indicator {
@@ -105,6 +111,7 @@
 .price-display {
   font-size: 16px;
   font-weight: bold;
+  white-space: nowrap;
 }
 
 .price-whole {
@@ -189,10 +196,14 @@
   text-transform: uppercase;
   letter-spacing: 1.5px;
   font-weight: 700;
+  flex-shrink: 0;
 }
 
 .spread-value {
   font-size: 16px;
   font-weight: bold;
   font-family: 'Courier New', monospace;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
 }
