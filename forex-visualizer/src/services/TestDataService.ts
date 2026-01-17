@@ -92,11 +92,14 @@ export class TestDataService {
     const bid = currentMid - halfSpread;
     const ask = currentMid + halfSpread;
 
+    // Calculate actual spread from bid/ask difference
+    const spread = ask - bid;
+
     return {
       symbol: pair,
       bid,
       ask,
-      spread: baseRate.spread,
+      spread,
       timestamp: Date.now(),
     };
   }
