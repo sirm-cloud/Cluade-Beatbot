@@ -140,7 +140,13 @@ export class PrimeAPIService {
       stream: this.config.stream!,
       pairs: this.config.pairs,
     };
-    console.log('[PrimeAPI] Subscribing to pairs:', this.config.pairs);
+
+    if (this.config.pairs.length === 0) {
+      console.log('[PrimeAPI] Subscribing with empty pairs array (unsubscribing from all)');
+    } else {
+      console.log('[PrimeAPI] Subscribing to pairs:', this.config.pairs);
+    }
+
     this.send(subscribeMsg);
   }
 
@@ -187,8 +193,14 @@ export class PrimeAPIService {
     });
 
     if (this.status === 'authenticated') {
-      // Re-subscribe with new pairs list
-      this.subscribe();
+      if (pairs.length === 0) {
+        console.log('[PrimeAPI] No pairs to subscribe to - clearing subscriptions');
+        // Subscribe with empty array to clear all subscriptions
+        this.subscribe();
+      } else {
+        // Re-subscribe with new pairs list
+        this.subscribe();
+      }
     } else {
       console.warn('[PrimeAPI] Cannot update pairs - not authenticated. Status:', this.status);
     }

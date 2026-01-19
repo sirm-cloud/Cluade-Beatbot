@@ -173,13 +173,19 @@ function App() {
           maxPairs={5}
         />
 
-        {prices && prices.length === 0 && status === 'authenticated' && (
+        {selectedPairs.length === 0 && (
+          <div className="loading-message">
+            <p>Select currency pairs to start tracking prices</p>
+          </div>
+        )}
+
+        {selectedPairs.length > 0 && prices.length === 0 && status === 'authenticated' && (
           <div className="loading-message">
             <p>Waiting for price data...</p>
           </div>
         )}
 
-        {prices && prices.length > 0 && (
+        {selectedPairs.length > 0 && prices.length > 0 && (
           <div className="tickers-grid">
             {prices.map((price) => (
               <PriceTicker key={price.symbol} price={price} />

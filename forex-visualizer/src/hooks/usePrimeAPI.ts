@@ -24,8 +24,13 @@ export function usePrimeAPI(options: UsePrimeAPIOptions) {
     return [...options.pairs].sort().join(',');
   }, [options.pairs]);
 
-  // Convert pairs array to Set for fast lookup
-  const pairsSet = useMemo(() => new Set(options.pairs), [pairsKey]);
+  // Use ref to track current pairs for price filtering
+  const currentPairsRef = useRef<Set<string>>(new Set(options.pairs));
+
+  // Update ref when pairs change
+  useEffect(() => {
+    currentPairsRef.current = new Set(options.pairs);
+  }, [pairsKey]);
 
   useEffect(() => {
     if (!options.apiKey) {
@@ -51,8 +56,8 @@ export function usePrimeAPI(options: UsePrimeAPIOptions) {
     });
 
     service.setOnPrice((price) => {
-      // Only process prices for currently selected pairs (use Set for O(1) lookup)
-      if (!pairsSet.has(price.symbol)) {
+      // Only process prices for currently selected pairs (use ref to get latest Set)
+      if (!currentPairsRef.current.has(price.symbol)) {
         return;
       }
 
@@ -97,17 +102,19 @@ export function usePrimeAPI(options: UsePrimeAPIOptions) {
     return () => {
       service.disconnect();
     };
-  }, [options.apiKey, options.stream, maxHistoryLength, pairsSet]);
+  }, [options.apiKey, options.stream, maxHistoryLength]);
 
   // Separate effect for pairs changes - clean up old data and update subscription
   useEffect(() => {
+    const currentPairs = new Set(options.pairs);
+
     // Clean up data for pairs that were removed
     setPrices((prev) => {
       const updated = new Map(prev);
       let hasChanges = false;
 
       Array.from(updated.keys()).forEach((symbol) => {
-        if (!pairsSet.has(symbol)) {
+        if (!currentPairs.has(symbol)) {
           updated.delete(symbol);
           hasChanges = true;
         }
@@ -121,7 +128,7 @@ export function usePrimeAPI(options: UsePrimeAPIOptions) {
       let hasChanges = false;
 
       Array.from(updated.keys()).forEach((symbol) => {
-        if (!pairsSet.has(symbol)) {
+        if (!currentPairs.has(symbol)) {
           updated.delete(symbol);
           hasChanges = true;
         }
@@ -130,11 +137,12 @@ export function usePrimeAPI(options: UsePrimeAPIOptions) {
       return hasChanges ? updated : prev;
     });
 
-    // Update subscription if service exists and is connected
+    // Update subscription if service exists and is authenticated
     if (serviceRef.current && status === 'authenticated') {
+      console.log('[usePrimeAPI] Updating subscription to pairs:', options.pairs);
       serviceRef.current.updatePairs(options.pairs);
     }
-  }, [pairsKey, pairsSet, options.pairs, status]);
+  }, [pairsKey, options.pairs, status]);
 
   const updatePairs = useCallback((newPairs: string[]) => {
     serviceRef.current?.updatePairs(newPairs);
