@@ -2,7 +2,7 @@
 
 A professional real-time forex data visualization web application built with React, TypeScript, and the PrimeAPI.io WebSocket API. Stream and visualize bid/ask prices for 2,300+ forex trading pairs with interactive charts, technical indicators, and advanced analytics.
 
-![Forex Visualizer](https://img.shields.io/badge/React-19.2.0-blue) ![TypeScript](https://img.shields.io/badge/TypeScript-5.9.3-blue) ![Vite](https://img.shields.io/badge/Vite-7.2.4-646cff) ![Chart.js](https://img.shields.io/badge/Chart.js-4.5.1-FF6384)
+![Forex Visualizer](https://img.shields.io/badge/React-19.2.0-blue) ![TypeScript](https://img.shields.io/badge/TypeScript-5.9.3-blue) ![Vite](https://img.shields.io/badge/Vite-7.2.4-646cff) ![Chart.js](https://img.shields.io/badge/Chart.js-4.5.1-FF6384) ![Tests](https://img.shields.io/badge/tests-52%20passing-success)
 
 ## ✨ Features
 
@@ -57,6 +57,7 @@ A professional real-time forex data visualization web application built with Rea
 
 - **Frontend**: React 19 with TypeScript
 - **Build Tool**: Vite 7
+- **Testing**: Vitest 4.0 with @testing-library/react and jsdom
 - **Charts**: Chart.js 4.5 with chartjs-chart-financial plugin
 - **WebSocket**: Native WebSocket API with custom service layer
 - **State Management**: React Hooks with useRef for stable updates
@@ -206,11 +207,15 @@ forex-visualizer/
 │   │   └── useForexData.ts      # Unified hook for live/test data
 │   ├── services/                # Business logic
 │   │   ├── PrimeAPIService.ts   # WebSocket service with reconnection
-│   │   └── TestDataService.ts   # Test data generator with dynamic spreads
+│   │   ├── TestDataService.ts   # Test data generator with dynamic spreads
+│   │   └── TestDataService.test.ts  # Test data service tests (28 tests)
+│   ├── test/                    # Test configuration
+│   │   └── setup.ts             # Vitest setup and custom matchers
 │   ├── types/                   # TypeScript types
 │   │   └── primeapi.ts          # API type definitions
 │   ├── utils/                   # Utility functions
-│   │   └── indicators.ts        # Technical indicator calculations
+│   │   ├── indicators.ts        # Technical indicator calculations
+│   │   └── indicators.test.ts   # Indicator tests (24 tests)
 │   ├── App.tsx                  # Main app component with mode toggle
 │   ├── App.css                  # App styles
 │   ├── index.css                # Global styles
@@ -219,6 +224,7 @@ forex-visualizer/
 ├── package.json                 # Dependencies
 ├── tsconfig.json                # TypeScript config
 ├── vite.config.ts               # Vite config
+├── vitest.config.ts             # Vitest test configuration
 └── README.md                    # This file
 ```
 
@@ -261,14 +267,252 @@ npm run preview
 
 The optimized production files will be in the `dist/` directory.
 
+## 🧪 Testing
+
+The project uses **Vitest** as its testing framework, providing fast, modern testing with excellent TypeScript support.
+
+### Test Coverage
+
+**Current Coverage: 52 tests passing**
+
+The test suite provides comprehensive coverage of core business logic:
+
+**1. Technical Indicators (`src/utils/indicators.test.ts` - 24 tests)**
+- ✅ Simple Moving Average (SMA)
+  - Multiple period calculations (1, 5, 20)
+  - Insufficient data handling
+  - Mid-price calculation verification
+  - Edge cases (empty arrays, extreme values)
+- ✅ Relative Strength Index (RSI)
+  - Uptrends, downtrends, sideways markets
+  - Period customization
+  - 0-100 bounds validation
+  - Zero loss scenarios
+- ✅ Bollinger Bands
+  - Band structure and ordering
+  - Volatility response
+  - Standard deviation multipliers
+  - Zero volatility (flat prices)
+
+**2. Test Data Service (`src/services/TestDataService.test.ts` - 28 tests)**
+- ✅ Service lifecycle (start, stop, reset)
+- ✅ Price generation accuracy
+  - Immediate initial prices
+  - 1-second interval updates
+  - Ask > Bid validation
+  - Spread = Ask - Bid precision
+- ✅ Price dynamics
+  - Mean reversion to base rates
+  - Proportional volatility across pairs
+  - Realistic timestamps
+- ✅ Dynamic spread behavior
+  - 50-200% spread range validation
+  - Spread volatility and mean reversion
+  - Different base spreads per pair
+- ✅ All 10 currency pairs supported
+- ✅ Edge cases (empty arrays, rapid cycles, unknown pairs)
+
+### Running Tests
+
+```bash
+# Run tests in watch mode (recommended for development)
+npm test
+
+# Run tests once (CI mode)
+npm run test:run
+
+# Open visual test UI in browser
+npm run test:ui
+
+# Generate coverage report
+npm run test:coverage
+```
+
+### Test Framework Setup
+
+**Testing Stack:**
+- **Vitest 4.0** - Fast, modern test runner with native ESM support
+- **@testing-library/react** - React component testing utilities
+- **@testing-library/jest-dom** - Custom DOM matchers
+- **jsdom** - Browser environment simulation
+
+**Configuration Files:**
+- `vitest.config.ts` - Vitest configuration with coverage settings
+- `src/test/setup.ts` - Test setup and custom matchers
+
+### Writing New Tests
+
+#### Example: Testing a Pure Function
+
+```typescript
+import { describe, it, expect } from 'vitest';
+import { yourFunction } from './yourFile';
+
+describe('yourFunction', () => {
+  it('should calculate correctly', () => {
+    const result = yourFunction(input);
+    expect(result).toBe(expected);
+  });
+
+  it('should handle edge cases', () => {
+    expect(yourFunction([])).toEqual([]);
+  });
+});
+```
+
+#### Example: Testing with Timers
+
+```typescript
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+
+describe('TimedService', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('should execute after delay', () => {
+    const callback = vi.fn();
+    service.start(callback);
+
+    vi.advanceTimersByTime(1000);
+    expect(callback).toHaveBeenCalled();
+  });
+});
+```
+
+#### Example: Testing Components (Future)
+
+```typescript
+import { render, screen } from '@testing-library/react';
+import { YourComponent } from './YourComponent';
+
+it('should render correctly', () => {
+  render(<YourComponent value={42} />);
+  expect(screen.getByText('42')).toBeInTheDocument();
+});
+```
+
+### Adding Tests for New Features
+
+When adding new features, follow this pattern:
+
+1. **Create test file** alongside source file:
+   ```
+   src/utils/newFeature.ts
+   src/utils/newFeature.test.ts
+   ```
+
+2. **Import testing utilities**:
+   ```typescript
+   import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+   ```
+
+3. **Organize tests by functionality**:
+   ```typescript
+   describe('NewFeature', () => {
+     describe('initialization', () => {
+       it('should initialize with defaults', () => { ... });
+     });
+
+     describe('core functionality', () => {
+       it('should perform main task', () => { ... });
+     });
+
+     describe('edge cases', () => {
+       it('should handle empty input', () => { ... });
+     });
+   });
+   ```
+
+4. **Run tests** to verify:
+   ```bash
+   npm test
+   ```
+
+### Custom Matchers
+
+The test setup includes custom matchers for common forex testing scenarios:
+
+```typescript
+// Check if value is within range
+expect(price).toBeWithinRange(1.08000, 1.09000);
+```
+
+### Test File Locations
+
+```
+forex-visualizer/
+├── src/
+│   ├── utils/
+│   │   ├── indicators.ts
+│   │   └── indicators.test.ts         # 24 tests
+│   ├── services/
+│   │   ├── TestDataService.ts
+│   │   └── TestDataService.test.ts    # 28 tests
+│   └── test/
+│       └── setup.ts                   # Test configuration
+└── vitest.config.ts                   # Vitest config
+```
+
+### Future Test Phases
+
+**Phase 2 - Hooks** (Planned):
+- `useForexData.ts` - Mode switching, pair cleanup
+- `usePrimeAPI.ts` - WebSocket mocking
+
+**Phase 3 - Components** (Planned):
+- `PriceTicker.tsx` - Formatting, direction indicators
+- `ForexChart.tsx` - Rendering, timeframes
+- `PairSelector.tsx` - Add/remove pairs
+
+### Best Practices
+
+1. **Test business logic first** - Pure functions are easiest to test
+2. **One assertion per test** - Keep tests focused
+3. **Use descriptive names** - Test names should explain what they verify
+4. **Test edge cases** - Empty arrays, null values, extreme numbers
+5. **Mock external dependencies** - Use `vi.fn()` for callbacks
+6. **Use beforeEach/afterEach** - Keep tests isolated
+7. **Check coverage** - Aim for 80%+ on critical code
+
+### Debugging Tests
+
+```bash
+# Run specific test file
+npm test -- indicators.test.ts
+
+# Run tests matching pattern
+npm test -- -t "should calculate SMA"
+
+# Run with UI for debugging
+npm run test:ui
+```
+
+The visual test UI (`test:ui`) provides an interactive interface for:
+- Viewing test results in real-time
+- Filtering tests by name or status
+- Inspecting detailed error messages
+- Monitoring test performance
+
 ## 👨‍💻 Development
 
 ### Available Scripts
 
+**Development:**
 - `npm run dev` - Start development server
 - `npm run build` - Build for production
 - `npm run preview` - Preview production build
 - `npm run lint` - Run ESLint
+
+**Testing:**
+- `npm test` - Run tests in watch mode
+- `npm run test:run` - Run tests once (CI mode)
+- `npm run test:ui` - Open visual test interface
+- `npm run test:coverage` - Generate coverage report
 
 ### Technical Implementation Details
 
