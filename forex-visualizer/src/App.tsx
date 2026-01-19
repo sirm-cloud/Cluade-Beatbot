@@ -57,6 +57,13 @@ function App() {
     maxHistoryLength: 200, // Keep 200 data points
   });
 
+  // Debug logging
+  useEffect(() => {
+    console.log('[App] selectedPairs:', selectedPairs);
+    console.log('[App] prices count:', prices?.length || 0);
+    console.log('[App] prices symbols:', prices?.map(p => p.symbol) || []);
+  }, [selectedPairs, prices]);
+
   const handleConnect = () => {
     // Test mode doesn't require an API key
     if (mode === 'test' || inputApiKey.trim()) {

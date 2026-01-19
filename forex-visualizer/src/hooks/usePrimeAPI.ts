@@ -56,15 +56,21 @@ export function usePrimeAPI(options: UsePrimeAPIOptions) {
     });
 
     service.setOnPrice((price) => {
+      console.log('[usePrimeAPI] Received price for:', price.symbol, 'Current pairs:', Array.from(currentPairsRef.current));
+
       // Only process prices for currently selected pairs (use ref to get latest Set)
       if (!currentPairsRef.current.has(price.symbol)) {
+        console.log('[usePrimeAPI] Ignoring price for', price.symbol, '- not in selected pairs');
         return;
       }
+
+      console.log('[usePrimeAPI] Processing price for:', price.symbol);
 
       // Update current prices
       setPrices((prev) => {
         const updated = new Map(prev);
         updated.set(price.symbol, price);
+        console.log('[usePrimeAPI] Updated prices Map. Size:', updated.size, 'Keys:', Array.from(updated.keys()));
         return updated;
       });
 
@@ -107,6 +113,7 @@ export function usePrimeAPI(options: UsePrimeAPIOptions) {
   // Separate effect for pairs changes - clean up old data and update subscription
   useEffect(() => {
     const currentPairs = new Set(options.pairs);
+    console.log('[usePrimeAPI] Pairs changed effect. New pairs:', options.pairs);
 
     // Clean up data for pairs that were removed
     setPrices((prev) => {
@@ -115,10 +122,15 @@ export function usePrimeAPI(options: UsePrimeAPIOptions) {
 
       Array.from(updated.keys()).forEach((symbol) => {
         if (!currentPairs.has(symbol)) {
+          console.log('[usePrimeAPI] Removing price data for:', symbol);
           updated.delete(symbol);
           hasChanges = true;
         }
       });
+
+      if (hasChanges) {
+        console.log('[usePrimeAPI] After cleanup, prices Map has:', updated.size, 'entries');
+      }
 
       return hasChanges ? updated : prev;
     });
@@ -156,9 +168,15 @@ export function usePrimeAPI(options: UsePrimeAPIOptions) {
     serviceRef.current?.connect();
   }, []);
 
+  const pricesArray = Array.from(prices.values());
+
+  if (pricesArray.length > 0) {
+    console.log('[usePrimeAPI] Returning', pricesArray.length, 'prices:', pricesArray.map(p => p.symbol));
+  }
+
   return {
     status,
-    prices: Array.from(prices.values()),
+    prices: pricesArray,
     priceHistory,
     error,
     updatePairs,
