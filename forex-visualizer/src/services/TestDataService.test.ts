@@ -363,12 +363,13 @@ describe('TestDataService', () => {
       // Reset
       service.reset();
 
-      // Generate new price
+      // Generate new price (spread will have volatility applied)
       vi.advanceTimersByTime(1000);
       const afterReset = prices[prices.length - 1];
 
-      // Spread should be close to base spread
-      expect(afterReset.spread).toBeCloseTo(baseSpread, 5);
+      // Spread should be close to base spread (within expected volatility range)
+      // Dynamic spreads can vary ±5% per tick, so we use looser precision
+      expect(afterReset.spread).toBeCloseTo(baseSpread, 4);
     });
   });
 
