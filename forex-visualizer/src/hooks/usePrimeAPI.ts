@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { PrimeAPIService } from '../services/PrimeAPIService';
 import type { ConnectionStatus } from '../services/PrimeAPIService';
 import type { ForexPrice, PriceHistory } from '../types/primeapi';
@@ -17,13 +17,15 @@ export function usePrimeAPI(options: UsePrimeAPIOptions) {
   const [error, setError] = useState<string | null>(null);
 
   const serviceRef = useRef<PrimeAPIService | null>(null);
-  const currentPairsRef = useRef<string[]>(options.pairs);
   const maxHistoryLength = options.maxHistoryLength || 100;
 
-  // Keep currentPairsRef up to date
-  useEffect(() => {
-    currentPairsRef.current = options.pairs;
+  // Create a stable, sorted key for the pairs to avoid false re-renders
+  const pairsKey = useMemo(() => {
+    return [...options.pairs].sort().join(',');
   }, [options.pairs]);
+
+  // Convert pairs array to Set for fast lookup
+  const pairsSet = useMemo(() => new Set(options.pairs), [pairsKey]);
 
   useEffect(() => {
     if (!options.apiKey) {
@@ -49,8 +51,8 @@ export function usePrimeAPI(options: UsePrimeAPIOptions) {
     });
 
     service.setOnPrice((price) => {
-      // Only process prices for currently selected pairs (use ref to get latest value)
-      if (!currentPairsRef.current.includes(price.symbol)) {
+      // Only process prices for currently selected pairs (use Set for O(1) lookup)
+      if (!pairsSet.has(price.symbol)) {
         return;
       }
 
@@ -95,36 +97,44 @@ export function usePrimeAPI(options: UsePrimeAPIOptions) {
     return () => {
       service.disconnect();
     };
-  }, [options.apiKey, options.stream, maxHistoryLength]);
+  }, [options.apiKey, options.stream, maxHistoryLength, pairsSet]);
 
-  // Separate effect for pairs changes - just clean up old data and update subscription
+  // Separate effect for pairs changes - clean up old data and update subscription
   useEffect(() => {
     // Clean up data for pairs that were removed
     setPrices((prev) => {
       const updated = new Map(prev);
+      let hasChanges = false;
+
       Array.from(updated.keys()).forEach((symbol) => {
-        if (!options.pairs.includes(symbol)) {
+        if (!pairsSet.has(symbol)) {
           updated.delete(symbol);
+          hasChanges = true;
         }
       });
-      return updated;
+
+      return hasChanges ? updated : prev;
     });
 
     setPriceHistory((prev) => {
       const updated = new Map(prev);
+      let hasChanges = false;
+
       Array.from(updated.keys()).forEach((symbol) => {
-        if (!options.pairs.includes(symbol)) {
+        if (!pairsSet.has(symbol)) {
           updated.delete(symbol);
+          hasChanges = true;
         }
       });
-      return updated;
+
+      return hasChanges ? updated : prev;
     });
 
     // Update subscription if service exists and is connected
-    if (serviceRef.current) {
+    if (serviceRef.current && status === 'authenticated') {
       serviceRef.current.updatePairs(options.pairs);
     }
-  }, [options.pairs.join(',')]);
+  }, [pairsKey, pairsSet, options.pairs, status]);
 
   const updatePairs = useCallback((newPairs: string[]) => {
     serviceRef.current?.updatePairs(newPairs);

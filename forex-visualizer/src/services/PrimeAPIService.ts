@@ -140,6 +140,7 @@ export class PrimeAPIService {
       stream: this.config.stream!,
       pairs: this.config.pairs,
     };
+    console.log('[PrimeAPI] Subscribing to pairs:', this.config.pairs);
     this.send(subscribeMsg);
   }
 
@@ -176,9 +177,20 @@ export class PrimeAPIService {
   }
 
   updatePairs(pairs: string[]) {
+    const oldPairs = this.config.pairs;
     this.config.pairs = pairs;
+
+    console.log('[PrimeAPI] Updating pairs:', {
+      old: oldPairs,
+      new: pairs,
+      status: this.status,
+    });
+
     if (this.status === 'authenticated') {
+      // Re-subscribe with new pairs list
       this.subscribe();
+    } else {
+      console.warn('[PrimeAPI] Cannot update pairs - not authenticated. Status:', this.status);
     }
   }
 
