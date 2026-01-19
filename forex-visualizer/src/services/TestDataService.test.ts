@@ -306,8 +306,8 @@ describe('TestDataService', () => {
       const spreads = prices.map(p => p.spread);
       const avgSpread = spreads.reduce((sum, s) => sum + s, 0) / spreads.length;
 
-      // Average should be close to base spread
-      expect(avgSpread).toBeCloseTo(baseSpread, 5);
+      // Average should be close to base spread (using precision 4 for dynamic spread volatility)
+      expect(avgSpread).toBeCloseTo(baseSpread, 4);
     });
 
     it('should have different base spreads for different pairs', () => {

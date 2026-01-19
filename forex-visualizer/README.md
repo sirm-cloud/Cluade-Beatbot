@@ -200,11 +200,15 @@ forex-visualizer/
 │   │   ├── ForexChart.tsx       # Chart component with indicators
 │   │   ├── ForexChart.css       # Chart styling
 │   │   ├── PriceTicker.tsx      # Price display with changes
+│   │   ├── PriceTicker.test.tsx # Price ticker tests (33 tests)
 │   │   ├── PriceTicker.css      # Ticker styling
-│   │   └── PairSelector.tsx     # Currency pair selector
+│   │   ├── PairSelector.tsx     # Currency pair selector
+│   │   ├── PairSelector.test.tsx # Pair selector tests (27 tests)
+│   │   └── PairSelector.css     # Pair selector styling
 │   ├── hooks/                   # Custom React hooks
 │   │   ├── usePrimeAPI.ts       # WebSocket hook with state management
-│   │   └── useForexData.ts      # Unified hook for live/test data
+│   │   ├── useForexData.ts      # Unified hook for live/test data
+│   │   └── useForexData.test.ts # Forex data hook tests (14 tests)
 │   ├── services/                # Business logic
 │   │   ├── PrimeAPIService.ts   # WebSocket service with reconnection
 │   │   ├── TestDataService.ts   # Test data generator with dynamic spreads
@@ -273,9 +277,11 @@ The project uses **Vitest** as its testing framework, providing fast, modern tes
 
 ### Test Coverage
 
-**Current Coverage: 52 tests passing**
+**Current Coverage: 112+ tests passing**
 
-The test suite provides comprehensive coverage of core business logic:
+The test suite provides comprehensive coverage across utilities, services, hooks, and components:
+
+**Phase 1: Core Utilities & Services (52 tests)**
 
 **1. Technical Indicators (`src/utils/indicators.test.ts` - 24 tests)**
 - ✅ Simple Moving Average (SMA)
@@ -311,6 +317,42 @@ The test suite provides comprehensive coverage of core business logic:
   - Different base spreads per pair
 - ✅ All 10 currency pairs supported
 - ✅ Edge cases (empty arrays, rapid cycles, unknown pairs)
+
+**Phase 2: React Hooks (14 tests)**
+
+**3. Forex Data Hook (`src/hooks/useForexData.test.ts` - 14 tests)**
+- ✅ Hook initialization and state management
+- ✅ Live mode delegation to usePrimeAPI
+- ✅ Test mode data generation
+- ✅ Mode switching (live/test)
+- ✅ Currency pair management
+- ✅ Status transitions
+- ✅ Parameter passing (API key, max history)
+- ✅ Default values and configuration
+
+**Phase 3: React Components (60 tests)**
+
+**4. Price Ticker Component (`src/components/PriceTicker.test.tsx` - 33 tests)**
+- ✅ Rendering (symbol, bid, ask, mid-price, spread, timestamp)
+- ✅ Price formatting (5 decimal places, split display, edge cases)
+- ✅ Spread calculation (pips conversion, decimal formatting)
+- ✅ Mid-price calculation
+- ✅ Direction indicators (up/down arrows, neutral state)
+- ✅ Price change display (value and percentage)
+- ✅ Different currency pairs (JPY, exotic pairs, small values)
+- ✅ CSS classes and structure
+- ✅ Edge cases (zero spread, precise values, symbol changes)
+
+**5. Pair Selector Component (`src/components/PairSelector.test.tsx` - 27 tests)**
+- ✅ Rendering (header, selected pairs, available pairs)
+- ✅ Dropdown behavior (open, close, toggle)
+- ✅ Adding pairs (selection, max limit enforcement)
+- ✅ Removing pairs (via chip buttons, via dropdown)
+- ✅ Custom maxPairs configuration
+- ✅ Selected state indicators (checkmarks)
+- ✅ Disabled states when max reached
+- ✅ CSS classes and structure
+- ✅ Edge cases (empty arrays, all selected, maxPairs=1)
 
 ### Running Tests
 
