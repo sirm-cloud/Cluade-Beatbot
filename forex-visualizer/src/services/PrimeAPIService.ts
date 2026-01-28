@@ -98,8 +98,13 @@ export class PrimeAPIService {
           console.log('Subscribed successfully:', message.msg);
           this.onSubscribeSuccess?.();
         } else {
-          console.error('Subscription failed:', message.msg);
-          this.onError?.(`Subscription failed: ${message.msg}`);
+          // Ignore "No valid pairs" error - it's expected when pairs are empty
+          if (message.msg?.includes('No valid pairs')) {
+            console.log('[PrimeAPI] Ignoring expected error:', message.msg);
+          } else {
+            console.error('Subscription failed:', message.msg);
+            this.onError?.(`Subscription failed: ${message.msg}`);
+          }
         }
         break;
 
