@@ -115,6 +115,11 @@ export function usePrimeAPI(options: UsePrimeAPIOptions) {
     const currentPairs = new Set(options.pairs);
     console.log('[usePrimeAPI] Pairs changed effect. New pairs:', options.pairs);
 
+    // Clear any previous subscription errors when pairs are added back
+    if (options.pairs.length > 0) {
+      setError(null);
+    }
+
     // Clean up data for pairs that were removed
     setPrices((prev) => {
       const updated = new Map(prev);
