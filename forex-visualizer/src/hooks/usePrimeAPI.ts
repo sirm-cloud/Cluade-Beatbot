@@ -101,6 +101,10 @@ export function usePrimeAPI(options: UsePrimeAPIOptions) {
       setError(errorMsg);
     });
 
+    service.setOnSubscribeSuccess(() => {
+      setError(null);
+    });
+
     // Connect
     service.connect();
 

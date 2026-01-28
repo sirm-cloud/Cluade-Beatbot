@@ -27,6 +27,7 @@ export class PrimeAPIService {
   private onStatusChange?: (status: ConnectionStatus) => void;
   private onPrice?: (price: ForexPrice) => void;
   private onError?: (error: string) => void;
+  private onSubscribeSuccess?: () => void;
 
   constructor(config: PrimeAPIConfig) {
     this.config = {
@@ -95,6 +96,7 @@ export class PrimeAPIService {
       case 'subscribe':
         if (message.status === 200) {
           console.log('Subscribed successfully:', message.msg);
+          this.onSubscribeSuccess?.();
         } else {
           console.error('Subscription failed:', message.msg);
           this.onError?.(`Subscription failed: ${message.msg}`);
@@ -221,5 +223,9 @@ export class PrimeAPIService {
 
   setOnError(handler: (error: string) => void) {
     this.onError = handler;
+  }
+
+  setOnSubscribeSuccess(handler: () => void) {
+    this.onSubscribeSuccess = handler;
   }
 }
