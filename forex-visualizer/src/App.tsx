@@ -161,7 +161,7 @@ function App() {
             <span className="mode-badge">{mode === 'test' ? '🧪 TEST MODE' : '🔴 LIVE'}</span>
             <span className="status-indicator" style={{ backgroundColor: getStatusColor() }} />
             <span className="status-text">{status}</span>
-            {error && <span className="error-text">⚠️ {error}</span>}
+            {error && !error.includes('No valid pairs') && <span className="error-text">⚠️ {error}</span>}
           </div>
         </div>
         <button
