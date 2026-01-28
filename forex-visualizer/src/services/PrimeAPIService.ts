@@ -137,18 +137,19 @@ export class PrimeAPIService {
   }
 
   private subscribe() {
+    // Don't send subscribe request with empty pairs - server returns error
+    if (this.config.pairs.length === 0) {
+      console.log('[PrimeAPI] No pairs to subscribe to - skipping subscription');
+      return;
+    }
+
     const subscribeMsg: SubscribeMessage = {
       op: 'subscribe',
       stream: this.config.stream!,
       pairs: this.config.pairs,
     };
 
-    if (this.config.pairs.length === 0) {
-      console.log('[PrimeAPI] Subscribing with empty pairs array (unsubscribing from all)');
-    } else {
-      console.log('[PrimeAPI] Subscribing to pairs:', this.config.pairs);
-    }
-
+    console.log('[PrimeAPI] Subscribing to pairs:', this.config.pairs);
     this.send(subscribeMsg);
   }
 
@@ -196,9 +197,9 @@ export class PrimeAPIService {
 
     if (this.status === 'authenticated') {
       if (pairs.length === 0) {
-        console.log('[PrimeAPI] No pairs to subscribe to - clearing subscriptions');
-        // Subscribe with empty array to clear all subscriptions
-        this.subscribe();
+        // Don't send subscribe request with empty pairs - server returns error
+        // Just log and let the UI show "select pairs" message
+        console.log('[PrimeAPI] No pairs to subscribe to - skipping subscription');
       } else {
         // Re-subscribe with new pairs list
         this.subscribe();
