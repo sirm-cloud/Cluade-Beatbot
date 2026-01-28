@@ -64,6 +64,9 @@ export function usePrimeAPI(options: UsePrimeAPIOptions) {
         return;
       }
 
+      // Clear any stale subscription errors - receiving prices proves subscription works
+      setError(null);
+
       console.log('[usePrimeAPI] Processing price for:', price.symbol);
 
       // Update current prices
