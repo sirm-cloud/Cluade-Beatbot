@@ -101,6 +101,10 @@ export function usePrimeAPI(options: UsePrimeAPIOptions) {
     });
 
     service.setOnError((errorMsg) => {
+      // Ignore "No valid pairs supplied" error - it's expected when no pairs selected
+      if (errorMsg.includes('No valid pairs')) {
+        return;
+      }
       setError(errorMsg);
     });
 
