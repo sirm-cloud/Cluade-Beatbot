@@ -217,15 +217,15 @@ export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
 
     switch (lineTimeframe) {
       case '1m':
-        // For 1 minute: show every 10 seconds (MM:SS format)
+        // For 1 minute: show every 10 seconds (HH:MM:SS format)
         if (index % 10 === 0 || index === totalPoints - 1) {
-          return date.toLocaleTimeString('en-US', { minute: '2-digit', second: '2-digit' });
+          return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
         }
         return '';
       case '5m':
-        // For 5 minutes: show every 30 seconds
+        // For 5 minutes: show every 30 seconds (HH:MM:SS format)
         if (index % 30 === 0 || index === totalPoints - 1) {
-          return date.toLocaleTimeString('en-US', { minute: '2-digit', second: '2-digit' });
+          return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
         }
         return '';
       case '15m':
