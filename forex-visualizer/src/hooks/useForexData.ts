@@ -7,7 +7,7 @@ interface UseForexDataOptions {
   mode: 'live' | 'test';
   apiKey: string;
   pairs: string[];
-  stream?: string;
+  stream?: 'fx' | 'fx1s';
   maxHistoryLength?: number;
 }
 
@@ -93,7 +93,7 @@ export function useForexData({
           time: Math.floor(price.timestamp / 1000),
           bid: price.bid,
           ask: price.ask,
-          spread: price.spread,
+          mid: (price.bid + price.ask) / 2,
         };
 
         const updated = [...history, historyItem].slice(-maxHistoryLength);

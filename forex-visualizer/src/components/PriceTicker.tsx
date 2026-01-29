@@ -62,7 +62,6 @@ export function PriceTicker({ price }: PriceTickerProps) {
     return `${sign}${priceChange.valueChange.toFixed(5)} (${sign}${priceChange.percentage.toFixed(2)}%)`;
   };
 
-  const midPrice = splitPrice(currentMid);
   const bidPrice = splitPrice(price.bid);
   const askPrice = splitPrice(price.ask);
 

@@ -11,7 +11,7 @@ function createMockPriceHistory(
     time: 1000000 + index,
     bid: price - spread / 2,
     ask: price + spread / 2,
-    spread,
+    mid: price,
   }));
 }
 
@@ -76,8 +76,8 @@ describe('calculateSMA', () => {
 
   it('should use mid-price (bid + ask) / 2', () => {
     const data: PriceHistory[] = [
-      { time: 1000, bid: 1.0, ask: 1.1, spread: 0.1 },
-      { time: 1001, bid: 2.0, ask: 2.2, spread: 0.2 },
+      { time: 1000, bid: 1.0, ask: 1.1, mid: 1.05 },
+      { time: 1001, bid: 2.0, ask: 2.2, mid: 2.1 },
     ];
     const result = calculateSMA(data, 2);
 

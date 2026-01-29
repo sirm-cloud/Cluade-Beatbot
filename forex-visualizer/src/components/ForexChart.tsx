@@ -423,7 +423,7 @@ export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
             y: {
               ticks: {
                 color: '#d1d4dc',
-                callback: function (value) {
+                callback: function (value: string | number) {
                   return (value as number).toFixed(5);
                 },
               },
@@ -596,7 +596,7 @@ export function ForexChart({ symbol, data, height = 400 }: ForexChartProps) {
             y: {
               ticks: {
                 color: '#d1d4dc',
-                callback: function (value) {
+                callback: function (value: string | number) {
                   return (value as number).toFixed(5);
                 },
               },
