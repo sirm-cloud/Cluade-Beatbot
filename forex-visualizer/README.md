@@ -2,14 +2,14 @@
 
 A professional real-time forex data visualization web application built with React, TypeScript, and the PrimeAPI.io WebSocket API. Stream and visualize bid/ask prices for 2,300+ forex trading pairs with interactive charts, technical indicators, and advanced analytics.
 
-![Forex Visualizer](https://img.shields.io/badge/React-19.2.0-blue) ![TypeScript](https://img.shields.io/badge/TypeScript-5.9.3-blue) ![Vite](https://img.shields.io/badge/Vite-7.2.4-646cff) ![Chart.js](https://img.shields.io/badge/Chart.js-4.5.1-FF6384) ![Tests](https://img.shields.io/badge/tests-52%20passing-success)
+![Forex Visualizer](https://img.shields.io/badge/React-19.2.0-blue) ![TypeScript](https://img.shields.io/badge/TypeScript-5.9.3-blue) ![Vite](https://img.shields.io/badge/Vite-7.2.4-646cff) ![Chart.js](https://img.shields.io/badge/Chart.js-4.5.1-FF6384) ![Tests](https://img.shields.io/badge/tests-112%20passing-success)
 
 ## ✨ Features
 
 ### Real-Time Data Streaming
 - **WebSocket Integration** - Live forex price updates via PrimeAPI.io (fx1s stream)
 - **Multiple Currency Pairs** - Monitor up to 5 forex pairs simultaneously
-- **Price Change Indicators** - Live price movement with colored arrows and percentage changes
+- **Price Change Indicators** - Live price movement in pips with colored arrows and signed percentage changes
 - **Automatic Reconnection** - Robust error handling with automatic retry logic
 
 ### Advanced Charting
@@ -19,7 +19,7 @@ A professional real-time forex data visualization web application built with Rea
 - **Separate Timeframes for Each Chart Type**:
   - **Line Charts**: 1m, 5m, 15m, 1h, or all data views
   - **Candlestick Charts**: 5s, 10s, or 30s intervals (each candle = exact timeframe)
-- **Timeframe-Aware Labels** - X-axis automatically adjusts based on selected timeframe
+- **Timeframe-Aware Labels** - X-axis automatically adjusts based on selected timeframe (HH:MM:SS for 1m/5m, HH:MM for longer views)
 - **Smooth Real-Time Updates** - Animations disabled for fluid data streaming
 - **Always 60 Candles** - Candlestick charts show 60 candles regardless of interval for consistent visualization
 
@@ -41,8 +41,10 @@ A professional real-time forex data visualization web application built with Rea
   - Side-by-side bid/ask prices with color-coded backgrounds (green/red)
   - Prominent mid-price display with directional arrows (↑/↓)
   - Spread shown in pips with yellow accent (dynamically updates in test mode)
+  - JPY-aware formatting: 3 decimal places for JPY pairs, 5 for standard pairs
+  - JPY-aware pip calculation: uses correct multiplier (×100 for JPY, ×10000 for others)
   - Split decimal formatting for improved readability
-  - Real-time price change indicators with percentage
+  - Real-time price change shown in pips with signed percentage (e.g., `+1.5 pips (+0.01%)`)
 - **Test Mode** - Realistic simulated data for development without API key:
   - Random walk algorithm with mean reversion for authentic price behavior
   - Dynamic spread variation (50-200% of base spread)
@@ -145,7 +147,7 @@ The app currently features 10 carefully selected forex pairs:
 
 #### Price Tickers
 New vertical layout prioritizes actionable data:
-1. **Header**: Symbol, timestamp, and price change with percentage
+1. **Header**: Symbol, timestamp, and price change in pips with signed percentage (e.g., `+1.5 pips (+0.01%)` or `-2.0 pips (-0.02%)`)
 2. **Bid/Ask Section**: Side-by-side display with:
    - Green-tinted background for Bid (left)
    - Red-tinted background for Ask (right)
@@ -156,7 +158,7 @@ New vertical layout prioritizes actionable data:
    - ⚪ Gray − = No change or initializing
 4. **Spread Section**: Spread shown in pips with yellow accent
 
-All prices display with 5 decimal precision and monospace font for alignment.
+**JPY-aware formatting**: JPY pairs (e.g., USD/JPY) display 3 decimal places and use a ×100 pip multiplier. All other pairs display 5 decimal places with a ×10000 multiplier. Monospace font used throughout for alignment.
 
 #### Charts
 - **Line Chart**:
@@ -474,6 +476,9 @@ expect(price).toBeWithinRange(1.08000, 1.09000);
 ```
 forex-visualizer/
 ├── src/
+│   ├── components/
+│   │   ├── PriceTicker.test.tsx       # 33 tests
+│   │   └── PairSelector.test.tsx      # 27 tests
 │   ├── utils/
 │   │   ├── indicators.ts
 │   │   └── indicators.test.ts         # 24 tests
@@ -484,17 +489,6 @@ forex-visualizer/
 │       └── setup.ts                   # Test configuration
 └── vitest.config.ts                   # Vitest config
 ```
-
-### Future Test Phases
-
-**Phase 2 - Hooks** (Planned):
-- `useForexData.ts` - Mode switching, pair cleanup
-- `usePrimeAPI.ts` - WebSocket mocking
-
-**Phase 3 - Components** (Planned):
-- `PriceTicker.tsx` - Formatting, direction indicators
-- `ForexChart.tsx` - Rendering, timeframes
-- `PairSelector.tsx` - Add/remove pairs
 
 ### Best Practices
 

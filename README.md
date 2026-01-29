@@ -15,7 +15,7 @@ A real-time forex data visualization web application built with React, TypeScrip
 - Test mode with realistic simulated data (works offline & on weekends, no API key required)
 - Dual chart types: Line charts and Candlestick charts with separate timeframes
 - Technical indicators: SMA 20/50, Bollinger Bands, RSI with custom legend tooltips
-- Redesigned price tickers with bid/ask, mid-price, and dynamic spread
+- Redesigned price tickers with bid/ask, mid-price, dynamic spread, and JPY-aware pip formatting
 - Support for 10 curated forex pairs (majors, crosses, and emerging markets)
 - Responsive dashboard with live price updates and directional indicators
 - Automatic reconnection and localStorage persistence
