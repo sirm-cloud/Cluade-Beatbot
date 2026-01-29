@@ -20,8 +20,11 @@ export function PriceTicker({ price }: PriceTickerProps) {
     hasData: false,
   });
 
-  const formatPrice = (value: number) => value.toFixed(5);
-  const formatSpread = (value: number) => (value * 10000).toFixed(1); // In pips
+  const isJPY = price.symbol.includes('JPY');
+  const pipMultiplier = isJPY ? 100 : 10000;
+
+  const formatPrice = (value: number) => value.toFixed(isJPY ? 3 : 5);
+  const formatSpread = (value: number) => (value * pipMultiplier).toFixed(1); // In pips
 
   // Split price into main and decimal parts for better visual hierarchy
   const splitPrice = (value: number) => {
@@ -58,8 +61,9 @@ export function PriceTicker({ price }: PriceTickerProps) {
 
   const getChangeText = () => {
     if (!priceChange.hasData) return '−';
-    const sign = priceChange.valueChange >= 0 ? '+' : '';
-    return `${sign}${priceChange.valueChange.toFixed(5)} (${sign}${priceChange.percentage.toFixed(2)}%)`;
+    const sign = priceChange.valueChange >= 0 ? '+' : '-';
+    const pips = Math.abs(priceChange.valueChange) * pipMultiplier;
+    return `${sign}${pips.toFixed(1)} pips (${sign}${priceChange.percentage.toFixed(2)}%)`;
   };
 
   const bidPrice = splitPrice(price.bid);

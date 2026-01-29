@@ -212,8 +212,8 @@ describe('PriceTicker', () => {
       const price2 = createMockPrice({ bid: 1.08600, ask: 1.08615, timestamp: Date.now() + 1000 });
       rerender(<PriceTicker price={price2} />);
 
-      // Should show +0.00100
-      expect(screen.getByText(/\+0\.00100/)).toBeInTheDocument();
+      // Should show +10.0 pips (0.00100 * 10000)
+      expect(screen.getByText(/\+10\.0 pips/)).toBeInTheDocument();
     });
 
     it('should show percentage change', () => {
@@ -236,8 +236,8 @@ describe('PriceTicker', () => {
       const price2 = createMockPrice({ bid: 1.08400, ask: 1.08415, timestamp: Date.now() + 1000 });
       rerender(<PriceTicker price={price2} />);
 
-      // Should show negative change
-      expect(screen.getByText(/-0\.00100/)).toBeInTheDocument();
+      // Should show -10.0 pips (0.00100 * 10000)
+      expect(screen.getByText(/-10\.0 pips/)).toBeInTheDocument();
     });
   });
 
@@ -254,7 +254,9 @@ describe('PriceTicker', () => {
       expect(screen.getByText('USDJPY')).toBeInTheDocument();
       const bidSection = container.querySelector('.price-item.bid');
       expect(bidSection).toHaveTextContent('148');
-      expect(bidSection).toHaveTextContent('.50000');
+      expect(bidSection).toHaveTextContent('.500');
+      // JPY spread: 0.015 * 100 = 1.5 pips
+      expect(screen.getByText('1.5 pips')).toBeInTheDocument();
     });
 
     it('should handle pairs with very small values', () => {
