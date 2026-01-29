@@ -97,6 +97,7 @@ function App() {
       <div className="app">
         <div className="login-container">
           <h1>Forex Data Visualizer</h1>
+          <p style={{ color: '#888', fontSize: '0.75rem' }}>v2.1.0</p>
           <p className="subtitle">
             {mode === 'live'
               ? 'Real-time forex streaming with PrimeAPI.io'
